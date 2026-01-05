@@ -139,13 +139,13 @@ export default function BackgroundRemover() {
 					<Card
 						title={
 							<div className="flex items-center gap-3">
-								<Badge variant="indigo">
-									{isProcessing ? "Processing..." : "Ready"}
-								</Badge>
 								{!isProcessing && processedImage && (
-									<span className="text-xs text-text-tertiary">
-										Drag slider to compare
-									</span>
+									<>
+										<Badge variant="indigo">Result</Badge>
+										<span className="text-xs text-text-tertiary">
+											Drag slider to compare
+										</span>
+									</>
 								)}
 							</div>
 						}
