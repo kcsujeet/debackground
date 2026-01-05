@@ -189,7 +189,7 @@ export default function BackgroundRemover() {
 							</div>
 						}
 					>
-						<div className="relative aspect-square md:aspect-16/10 bg-surface flex items-center justify-center overflow-hidden">
+						<div className="relative aspect-square md:aspect-16/10 bg-surface bg-checkered flex items-center justify-center overflow-hidden">
 							{/* Background comparison or initial state */}
 							{image && !processedImage && !isProcessing && (
 								<img

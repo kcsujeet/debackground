@@ -4,11 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 interface BeforeAfterSliderProps {
 	beforeImage: string;
 	afterImage: string;
+	showCheckered?: boolean;
 }
 
 export default function BeforeAfterSlider({
 	beforeImage,
 	afterImage,
+	showCheckered = true,
 }: BeforeAfterSliderProps) {
 	const [sliderPosition, setSliderPosition] = useState(50);
 	const [isDragging, setIsDragging] = useState(false);
@@ -55,7 +57,7 @@ export default function BeforeAfterSlider({
 	return (
 		<div
 			ref={containerRef}
-			className="relative w-full aspect-16/10 rounded-xl overflow-hidden cursor-ew-resize select-none border border-border shadow-2xl"
+			className={`relative w-full aspect-16/10 rounded-xl overflow-hidden cursor-ew-resize select-none border border-border shadow-2xl ${showCheckered ? "bg-checkered" : "bg-surface"}`}
 			onMouseDown={handleMouseDown}
 			onTouchStart={handleMouseDown}
 			role="img"
@@ -68,17 +70,6 @@ export default function BeforeAfterSlider({
 					alt="Background removed result"
 					className="w-full h-full object-cover"
 					draggable={false}
-				/>
-				{/* Checkerboard pattern for transparency */}
-				<div
-					className="absolute inset-0 -z-10"
-					style={{
-						backgroundImage:
-							"linear-gradient(45deg, #808080 25%, transparent 25%), linear-gradient(-45deg, #808080 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #808080 75%), linear-gradient(-45deg, transparent 75%, #808080 75%)",
-						backgroundSize: "20px 20px",
-						backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
-						opacity: 0.1,
-					}}
 				/>
 			</div>
 

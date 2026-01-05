@@ -144,14 +144,10 @@ export default function EditorSidebar() {
 										type="button"
 										key={color}
 										onClick={() => setBgColor(color)}
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 ${bgColor === color ? "border-indigo-600 ring-4 ring-indigo-50" : "border-transparent shadow-sm"}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 ${bgColor === color ? "border-indigo-600 ring-4 ring-indigo-50" : "border-transparent shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
 										style={{
 											backgroundColor:
-												color === "transparent" ? "white" : color,
-											backgroundImage:
-												color === "transparent"
-													? "url('https://www.transparenttextures.com/patterns/checkerboard.png')"
-													: "none",
+												color === "transparent" ? undefined : color,
 										}}
 									/>
 								))}

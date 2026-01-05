@@ -203,7 +203,7 @@ export default function RefineOverlay() {
 					<img
 						src={processedImageSource}
 						alt="Refine"
-						className="col-start-1 row-start-1 max-w-[85vw] max-h-[85vh] w-auto h-auto block pointer-events-none select-none bg-white bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]"
+						className="col-start-1 row-start-1 max-w-[85vw] max-h-[85vh] w-auto h-auto block pointer-events-none select-none bg-checkered"
 					/>
 					<canvas
 						ref={previewCanvasRef}

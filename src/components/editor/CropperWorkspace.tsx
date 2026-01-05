@@ -63,11 +63,10 @@ export default function CropperWorkspace() {
 				style={{
 					containerStyle: {
 						backgroundColor: bgColor === "transparent" ? undefined : bgColor,
-						backgroundImage:
-							bgColor === "transparent"
-								? "url('https://www.transparenttextures.com/patterns/checkerboard.png')"
-								: "none",
 					},
+				}}
+				classes={{
+					containerClassName: bgColor === "transparent" ? "bg-checkered" : "",
 				}}
 			/>
 		</div>
