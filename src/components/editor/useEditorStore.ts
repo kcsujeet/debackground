@@ -22,6 +22,8 @@ interface EditorState {
 	brushMode: "eraser" | "restore";
 	brushSize: number;
 	refineZoom: number;
+	refinePan: { x: number; y: number };
+	isSpacePressed: boolean;
 	manualMaskCanvas: HTMLCanvasElement | null;
 	maskUpdateCounter: number;
 	isDrawing: boolean;
@@ -38,8 +40,9 @@ interface EditorActions {
 	incrementMaskCounter: () => void;
 
 	// Crop/Transform actions
-	setCrop: (crop: Point) => void;
-	setZoom: (zoom: number) => void;
+	setCrop: (crop: Point | ((p: Point) => Point)) => void;
+	setZoom: (zoom: number | ((z: number) => number)) => void;
+
 	setAspect: (aspect: number) => void;
 	setRotation: (rotation: number | ((r: number) => number)) => void;
 	setFlipX: (flip: boolean) => void;
@@ -51,12 +54,18 @@ interface EditorActions {
 	setIsCleanupMode: (mode: boolean) => void;
 	setBrushMode: (mode: "eraser" | "restore") => void;
 	setBrushSize: (size: number) => void;
-	setRefineZoom: (zoom: number) => void;
+	setRefineZoom: (zoom: number | ((z: number) => number)) => void;
+	setRefinePan: (
+		pan:
+			| { x: number; y: number }
+			| ((p: { x: number; y: number }) => { x: number; y: number }),
+	) => void;
+	setIsSpacePressed: (pressed: boolean) => void;
 	setIsDrawing: (drawing: boolean) => void;
 
 	// Mask operations
 	clearMask: () => void;
-	drawOnMask: (x: number, y: number) => void;
+	drawOnMask: (x: number, y: number, isStart?: boolean) => void;
 }
 
 type EditorStore = EditorState & EditorActions;
@@ -77,6 +86,8 @@ const initialState: EditorState = {
 	brushMode: "eraser",
 	brushSize: 30,
 	refineZoom: 1,
+	refinePan: { x: 0, y: 0 },
+	isSpacePressed: false,
 	manualMaskCanvas: null,
 	maskUpdateCounter: 0,
 	isDrawing: false,
@@ -103,8 +114,18 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 		set((state) => ({ maskUpdateCounter: state.maskUpdateCounter + 1 })),
 
 	// Crop/Transform
-	setCrop: (crop) => set({ crop }),
-	setZoom: (zoom) => set({ zoom: Math.round(zoom * 100) / 100 }),
+	setCrop: (crop) =>
+		set((state) => ({
+			crop: typeof crop === "function" ? crop(state.crop) : crop,
+		})),
+	setZoom: (zoom) =>
+		set((state) => ({
+			zoom:
+				Math.round(
+					(typeof zoom === "function" ? zoom(state.zoom) : zoom) * 100,
+				) / 100,
+		})),
+
 	setAspect: (aspect) => set({ aspect }),
 	setRotation: (rotation) =>
 		set((state) => ({
@@ -120,7 +141,18 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 	setIsCleanupMode: (mode) => set({ isCleanupMode: mode }),
 	setBrushMode: (mode) => set({ brushMode: mode }),
 	setBrushSize: (size) => set({ brushSize: size }),
-	setRefineZoom: (zoom) => set({ refineZoom: Math.round(zoom * 100) / 100 }),
+	setRefineZoom: (zoom) =>
+		set((state) => ({
+			refineZoom:
+				Math.round(
+					(typeof zoom === "function" ? zoom(state.refineZoom) : zoom) * 100,
+				) / 100,
+		})),
+	setRefinePan: (pan) =>
+		set((state) => ({
+			refinePan: typeof pan === "function" ? pan(state.refinePan) : pan,
+		})),
+	setIsSpacePressed: (pressed) => set({ isSpacePressed: pressed }),
 	setIsDrawing: (drawing) => set({ isDrawing: drawing }),
 
 	// Mask operations
@@ -134,9 +166,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 		}
 	},
 
-	drawOnMask: (x, y) => {
-		const { manualMaskCanvas, isCleanupMode, brushMode, brushSize, isDrawing } =
-			get();
+	drawOnMask: (x, y, isStart = false) => {
+		const { manualMaskCanvas, isCleanupMode, brushMode, brushSize } = get();
 		if (!manualMaskCanvas || !isCleanupMode) return;
 		const ctx = manualMaskCanvas.getContext("2d");
 		if (!ctx) return;
@@ -148,12 +179,12 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 		ctx.strokeStyle =
 			brushMode === "eraser" ? "rgba(255, 0, 0, 1)" : "rgba(0, 255, 0, 1)";
 
-		if (isDrawing) {
-			ctx.lineTo(x, y);
-			ctx.stroke();
-		} else {
+		if (isStart) {
 			ctx.beginPath();
 			ctx.moveTo(x, y);
+		} else {
+			ctx.lineTo(x, y);
+			ctx.stroke();
 		}
 	},
 }));

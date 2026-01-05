@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useEditorStore } from "./useEditorStore";
 
 export default function RefineOverlay() {
@@ -8,6 +8,10 @@ export default function RefineOverlay() {
 		brushMode,
 		brushSize,
 		refineZoom,
+		setRefineZoom,
+		refinePan,
+		setRefinePan,
+		isSpacePressed,
 		isDrawing,
 		setIsDrawing,
 		drawOnMask,
@@ -17,30 +21,80 @@ export default function RefineOverlay() {
 	const previewCanvasRef = useRef<HTMLCanvasElement>(null);
 	const cursorRef = useRef<HTMLDivElement>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
+	const lastPosRef = useRef<{ x: number; y: number } | null>(null);
+
+	// cursorRef logic remains, but we don't need the window listeners here anymore
+	useEffect(() => {
+		if (isSpacePressed) {
+			if (cursorRef.current) cursorRef.current.style.display = "none";
+		} else {
+			if (cursorRef.current) cursorRef.current.style.display = "block";
+		}
+	}, [isSpacePressed]);
+
+	// Wheel event for zoom and pan
+	useEffect(() => {
+		const container = containerRef.current;
+		if (!container) return;
+
+		const handleWheel = (e: WheelEvent) => {
+			e.preventDefault();
+
+			// Zoom: Alt (Photoshop default) OR Ctrl/Meta (Trackpad pinch)
+			if (e.altKey || e.ctrlKey || e.metaKey) {
+				const zoomSpeed = 0.005;
+				const delta = -e.deltaY;
+				setRefineZoom((prev) => {
+					const next = prev + delta * zoomSpeed;
+					return Math.max(0.2, Math.min(next, 10));
+				});
+				return;
+			}
+
+			// Panning: Mouse wheel or trackpad scroll
+			const panSpeed = 1.0;
+			setRefinePan((prev) => ({
+				x: prev.x - e.deltaX * panSpeed,
+				y: prev.y - e.deltaY * panSpeed,
+			}));
+		};
+
+		container.addEventListener("wheel", handleWheel, { passive: false });
+		return () => container.removeEventListener("wheel", handleWheel);
+	}, [setRefineZoom, setRefinePan]);
 
 	const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
-		if (!cursorRef.current) return;
-		const container = e.currentTarget as HTMLElement;
-		const rect = container.getBoundingClientRect();
 		const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
 		const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
 
-		// Update cursor position directly to avoid React re-renders (lag)
+		// 1. Panning logic
+		if (isSpacePressed) {
+			if (isDrawing && lastPosRef.current) {
+				const dx = clientX - lastPosRef.current.x;
+				const dy = clientY - lastPosRef.current.y;
+				setRefinePan((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
+				lastPosRef.current = { x: clientX, y: clientY };
+			}
+			return;
+		}
+
+		// 2. Drawing/Cursor logic
+		if (!cursorRef.current) return;
+		const container = containerRef.current;
+		if (!container) return;
+		const rect = container.getBoundingClientRect();
+
 		const x = clientX - rect.left;
 		const y = clientY - rect.top;
 
-		// Show cursor
 		cursorRef.current.style.display = "block";
 		cursorRef.current.style.left = `${x}px`;
 		cursorRef.current.style.top = `${y}px`;
 
-		if (!isDrawing && !manualMaskCanvas) return;
-
-		const img = (e.currentTarget as HTMLElement).querySelector("img");
+		const img = container.querySelector("img");
 		if (!img) return;
 		const imgRect = img.getBoundingClientRect();
 
-		// Calculate scaling ratio to match brush visual size to actual canvas stroke size
 		const scale = manualMaskCanvas ? imgRect.width / manualMaskCanvas.width : 1;
 		const visualSize = brushSize * scale;
 
@@ -51,26 +105,22 @@ export default function RefineOverlay() {
 
 		if (!isDrawing || !manualMaskCanvas) return;
 
-		// Calculate relative coordinates for drawing
 		const relX =
 			(clientX - imgRect.left) * (manualMaskCanvas.width / imgRect.width);
 		const relY =
 			(clientY - imgRect.top) * (manualMaskCanvas.height / imgRect.height);
 
-		// 1. Update the actual data mask (persisted)
-		drawOnMask(relX, relY);
+		drawOnMask(relX, relY, false);
 
-		// 2. Draw on the preview canvas (visual feedback)
 		const pCtx = previewCanvasRef.current?.getContext("2d");
 		if (pCtx) {
 			pCtx.lineWidth = brushSize;
 			pCtx.lineCap = "round";
 			pCtx.lineJoin = "round";
-			// Use correct colors for preview: transparent red for erase, green for restore
 			pCtx.strokeStyle =
 				brushMode === "eraser"
 					? "rgba(239, 68, 68, 0.5)"
-					: "rgba(16, 185, 129, 0.5)"; // Red-500 / Emerald-500
+					: "rgba(16, 185, 129, 0.5)";
 
 			pCtx.lineTo(relX, relY);
 			pCtx.stroke();
@@ -81,45 +131,44 @@ export default function RefineOverlay() {
 
 	const handleUp = () => {
 		setIsDrawing(false);
-		// Commit the changes by triggering re-process
-		incrementMaskCounter();
+		lastPosRef.current = null;
 
-		// Clear the preview canvas now that the main image will re-render with the mask applied
-		const pCtx = previewCanvasRef.current?.getContext("2d");
-		if (pCtx && previewCanvasRef.current) {
-			pCtx.clearRect(
-				0,
-				0,
-				previewCanvasRef.current.width,
-				previewCanvasRef.current.height,
-			);
-			pCtx.beginPath(); // Reset path
+		if (!isSpacePressed) {
+			incrementMaskCounter();
+			const pCtx = previewCanvasRef.current?.getContext("2d");
+			if (pCtx && previewCanvasRef.current) {
+				pCtx.clearRect(
+					0,
+					0,
+					previewCanvasRef.current.width,
+					previewCanvasRef.current.height,
+				);
+				pCtx.beginPath();
+			}
 		}
 	};
 
 	const handleStart = (e: React.MouseEvent | React.TouchEvent) => {
-		e.preventDefault(); // Prevent auto-scroll behavior
+		const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+		const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
 		setIsDrawing(true);
-		// Initialize path on preview canvas
+		lastPosRef.current = { x: clientX, y: clientY };
+
+		if (isSpacePressed) return;
+
 		const pCtx = previewCanvasRef.current?.getContext("2d");
-		if (pCtx) {
+		if (pCtx && manualMaskCanvas) {
 			pCtx.beginPath();
-
-			// Move to start position in canvas coordinates
-			const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-			const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-
-			if (manualMaskCanvas) {
-				const img = (e.currentTarget as HTMLElement).querySelector("img");
-				if (img) {
-					const imgRect = img.getBoundingClientRect();
-					const relX =
-						(clientX - imgRect.left) * (manualMaskCanvas.width / imgRect.width);
-					const relY =
-						(clientY - imgRect.top) *
-						(manualMaskCanvas.height / imgRect.height);
-					pCtx.moveTo(relX, relY);
-				}
+			const img = (e.currentTarget as HTMLElement).querySelector("img");
+			if (img) {
+				const imgRect = img.getBoundingClientRect();
+				const relX =
+					(clientX - imgRect.left) * (manualMaskCanvas.width / imgRect.width);
+				const relY =
+					(clientY - imgRect.top) * (manualMaskCanvas.height / imgRect.height);
+				pCtx.moveTo(relX, relY);
+				drawOnMask(relX, relY, true);
 			}
 		}
 		handleMouseMove(e);
@@ -128,16 +177,13 @@ export default function RefineOverlay() {
 	return (
 		<div
 			ref={containerRef}
-			className="absolute inset-0 z-50 bg-slate-950 overflow-hidden flex items-center justify-center cursor-crosshair"
+			className={`absolute inset-0 z-50 bg-slate-950 overflow-hidden flex items-center justify-center ${isSpacePressed ? (isDrawing ? "cursor-grabbing" : "cursor-grab") : "cursor-none"}`}
 			onMouseDown={handleStart}
 			onMouseMove={handleMouseMove}
 			onMouseUp={handleUp}
 			onMouseLeave={() => {
 				handleUp();
 				if (cursorRef.current) cursorRef.current.style.display = "none";
-			}}
-			onMouseEnter={() => {
-				if (cursorRef.current) cursorRef.current.style.display = "block";
 			}}
 			onTouchStart={handleStart}
 			onTouchMove={handleMouseMove}
@@ -148,9 +194,9 @@ export default function RefineOverlay() {
 			<div
 				className="relative w-fit h-fit"
 				style={{
-					transform: `scale(${refineZoom})`,
+					transform: `translate(${refinePan.x}px, ${refinePan.y}px) scale(${refineZoom})`,
 					transformOrigin: "center center",
-					transition: "transform 0.15s ease-out",
+					transition: isDrawing ? "none" : "transform 0.15s ease-out",
 				}}
 			>
 				<div className="relative grid place-items-center">
@@ -159,7 +205,6 @@ export default function RefineOverlay() {
 						alt="Refine"
 						className="col-start-1 row-start-1 max-w-[85vw] max-h-[85vh] w-auto h-auto block pointer-events-none select-none bg-white bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')]"
 					/>
-					{/* Live Preview Canvas */}
 					<canvas
 						ref={previewCanvasRef}
 						width={manualMaskCanvas?.width}
@@ -176,9 +221,10 @@ export default function RefineOverlay() {
 					borderRadius: "50%",
 					transform: "translate(-50%, -50%)",
 					boxShadow: "0 0 15px rgba(0,0,0,0.5)",
-					border: "2px solid #f43f5e", // Default, updated via JS
-					display: "none", // Hidden initially
+					border: "2px solid #f43f5e",
+					display: "none",
 					pointerEvents: "none",
+					zIndex: 100,
 				}}
 			/>
 		</div>

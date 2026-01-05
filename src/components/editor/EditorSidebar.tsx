@@ -2,6 +2,7 @@ import {
 	Eraser,
 	FlipHorizontal,
 	FlipVertical,
+	Keyboard,
 	Maximize,
 	Paintbrush,
 	Palette,
@@ -236,6 +237,36 @@ export default function EditorSidebar() {
 						</div>
 					</div>
 				)}
+			</div>
+
+			{/* Shortcuts Help Section */}
+			<div className="p-6 bg-slate-50 border-t border-slate-200">
+				<div className="flex items-center gap-2 mb-3">
+					<Keyboard className="w-3.5 h-3.5 text-slate-500" />
+					<h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+						Shortcuts
+					</h4>
+				</div>
+				<div className="space-y-2.5">
+					<div className="flex items-center justify-between text-[11px]">
+						<span className="text-slate-600 font-medium">Pan View</span>
+						<span className="font-mono bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-950 shadow-xs font-bold">
+							Space + Drag
+						</span>
+					</div>
+					<div className="flex items-center justify-between text-[11px]">
+						<span className="text-slate-600 font-medium">Zoom In/Out</span>
+						<span className="font-mono bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-950 shadow-xs font-bold">
+							Alt + Wheel
+						</span>
+					</div>
+					<div className="flex items-center justify-between text-[11px]">
+						<span className="text-slate-600 font-medium">Natural Pan</span>
+						<span className="font-mono bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-950 shadow-xs font-bold">
+							Mouse Wheel
+						</span>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

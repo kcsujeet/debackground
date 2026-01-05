@@ -28,7 +28,36 @@ export default function ImageEditor({
 		bgColor,
 		croppedAreaPixels,
 		isCleanupMode,
+		setIsSpacePressed,
 	} = useEditorStore();
+
+	// Global key listeners for Spacebar
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.code === "Space") {
+				// Only prevent default if we're not in an input/textarea
+				if (
+					document.activeElement?.tagName === "INPUT" ||
+					document.activeElement?.tagName === "TEXTAREA"
+				)
+					return;
+				e.preventDefault();
+				setIsSpacePressed(true);
+			}
+		};
+		const handleKeyUp = (e: KeyboardEvent) => {
+			if (e.code === "Space") {
+				setIsSpacePressed(false);
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		window.addEventListener("keyup", handleKeyUp);
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+			window.removeEventListener("keyup", handleKeyUp);
+		};
+	}, [setIsSpacePressed]);
 
 	// Initialize editor state when component mounts or props change
 	useEffect(() => {

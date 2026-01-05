@@ -2,17 +2,24 @@
 
 This file contains notes and instructions for the Gemini agent working on this project.
 
-## Current Task: Switched back to Transformers.js (MIT)
-The project is moving back to a custom Transformers.js implementation using `onnx-community/BiRefNet_lite-ONNX` to ensure an MIT-compatible license for commercial safety, avoiding the AGPL license of `@imgly/background-removal`.
+## Current State: UI Modernized & Interactive Demo Integrated
+The project has successfully transitioned to a modern, Linear-inspired design. The interactive `BeforeAfterSlider` is integrated both in the hero section and the main background removal tool. Performance and zoom precision issues have been addressed.
 
-## Technology Stack Update
+## Technology Stack
 - **Runtime/Package Manager**: Bun
-- **Background Removal**: Transformers.js + BiRefNet (MIT)
+- **Background Removal**: Transformers.js (MIT) - `onnx-community/BiRefNet_lite-ONNX`
 - **Framework**: Astro + React
+- **Styling**: Tailwind CSS v4 (Canonical classes)
+- **State Management**: Zustand v5
 
-## Plan
-1. Switch package management to `bun`.
-2. Install `@imgly/background-removal` using `bun`.
-3. Refactor `background-removal-worker.ts` to use the new library.
-4. Update `BackgroundRemover.tsx` to handle the new worker interface if necessary.
-5. Verify performance and edge-case handling.
+## Milestones Passed
+- [x] Switch to Transformers.js for MIT compliance.
+- [x] Implement Zustand for editor state.
+- [x] UI Modernization (OKLCH, Glassmorphism, Linear-inspired).
+- [x] Integrated Interactive Before/After Slider.
+- [x] Refined Zoom Precision.
+
+## Next Steps
+- [ ] Monitor for performance bottlenecks in edge cases.
+- [ ] Explore additional AI models for specific image types (e.g., hair, sharp edges).
+

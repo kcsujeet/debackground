@@ -8,6 +8,7 @@ export function useImageProcessor() {
 		flipX,
 		flipY,
 		manualMaskCanvas,
+		maskUpdateCounter,
 		isCleanupMode,
 		setProcessedImageSource,
 		setManualMaskCanvas,
@@ -17,6 +18,11 @@ export function useImageProcessor() {
 		let isMounted = true;
 
 		const processImage = async () => {
+			console.log(
+				"[useImageProcessor] Processing image. Counter:",
+				maskUpdateCounter,
+			);
+
 			// If no transforms and no mask, just use the original image prop
 			// But if we are in cleanup mode, we need to proceed to initialize the mask canvas
 			if (!flipX && !flipY && !manualMaskCanvas && !isCleanupMode) {
@@ -152,6 +158,7 @@ export function useImageProcessor() {
 		flipX,
 		flipY,
 		manualMaskCanvas,
+		maskUpdateCounter,
 		sourceImage,
 		isCleanupMode,
 		setProcessedImageSource,
