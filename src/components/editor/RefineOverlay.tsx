@@ -199,17 +199,17 @@ export default function RefineOverlay() {
 					transition: isDrawing ? "none" : "transform 0.15s ease-out",
 				}}
 			>
-				<div className="relative grid place-items-center">
+				<div className="relative h-fit w-fit">
 					<img
 						src={processedImageSource}
 						alt="Refine"
-						className="col-start-1 row-start-1 max-w-[85vw] max-h-[85vh] w-auto h-auto block pointer-events-none select-none bg-checkered"
+						className="max-w-[85vw] max-h-[85vh] w-auto h-auto block pointer-events-none select-none bg-checkered"
 					/>
 					<canvas
 						ref={previewCanvasRef}
 						width={manualMaskCanvas?.width}
 						height={manualMaskCanvas?.height}
-						className="col-start-1 row-start-1 w-full h-full pointer-events-none"
+						className="absolute inset-0 w-full h-full pointer-events-none"
 					/>
 				</div>
 			</div>
