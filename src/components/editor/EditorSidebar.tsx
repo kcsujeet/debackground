@@ -10,8 +10,8 @@ import {
 	Undo2,
 	ZoomIn,
 } from "lucide-react";
-import Button from "../ui/Button";
-import Slider from "../ui/Slider";
+import { Button } from "@/components/ui/Button";
+import { Slider } from "@/components/ui/Slider";
 import { useEditorStore } from "./useEditorStore";
 
 const BACKGROUND_COLORS = [
@@ -52,19 +52,19 @@ export default function EditorSidebar() {
 	} = useEditorStore();
 
 	return (
-		<div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-slate-200 bg-white flex flex-col shrink-0">
+		<div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-card flex flex-col shrink-0">
 			<div className="p-6 space-y-8 overflow-y-auto flex-1">
 				{isCleanupMode ? (
 					<div className="space-y-8 animate-in slide-in-from-right duration-300">
 						<div>
-							<h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
+							<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4">
 								Tool Type
 							</h4>
-							<div className="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-[1.25rem] border border-slate-100">
+							<div className="grid grid-cols-2 gap-2 bg-muted p-1.5 rounded-[1.25rem] border border-border">
 								<button
 									type="button"
 									onClick={() => setBrushMode("eraser")}
-									className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${brushMode === "eraser" ? "bg-white shadow-md text-indigo-600 font-bold border border-slate-100" : "text-slate-400 hover:text-slate-600"}`}
+									className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${brushMode === "eraser" ? "bg-card shadow-md text-primary font-bold border border-border" : "text-muted-foreground hover:text-foreground"}`}
 								>
 									<Eraser className="w-5 h-5" />
 									<span className="text-[10px] uppercase tracking-wider">
@@ -74,7 +74,7 @@ export default function EditorSidebar() {
 								<button
 									type="button"
 									onClick={() => setBrushMode("restore")}
-									className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${brushMode === "restore" ? "bg-white shadow-md text-emerald-600 font-bold border border-slate-100" : "text-slate-400 hover:text-slate-600"}`}
+									className={`flex flex-col items-center gap-2 p-4 rounded-xl transition-all ${brushMode === "restore" ? "bg-card shadow-md text-emerald-600 font-bold border border-border" : "text-muted-foreground hover:text-foreground"}`}
 								>
 									<Undo2 className="w-5 h-5" />
 									<span className="text-[10px] uppercase tracking-wider">
@@ -84,32 +84,48 @@ export default function EditorSidebar() {
 							</div>
 						</div>
 
-						<Slider
-							label="Brush Size"
-							min={5}
-							max={100}
-							value={brushSize}
-							onChange={setBrushSize}
-							icon={<Paintbrush className="w-3 h-3" />}
-						/>
+						<div>
+							<div className="flex items-center justify-between mb-3">
+								<span className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+									<Paintbrush className="w-3 h-3" /> Brush Size
+								</span>
+								<span className="text-xs font-medium text-muted-foreground">
+									{brushSize}px
+								</span>
+							</div>
+							<Slider
+								min={5}
+								max={100}
+								value={[brushSize]}
+								onValueChange={(val) => setBrushSize(val[0])}
+							/>
+						</div>
 
-						<Slider
-							label="Zoom"
-							min={0.5}
-							max={3}
-							step={0.1}
-							value={refineZoom}
-							onChange={setRefineZoom}
-							icon={<ZoomIn className="w-3 h-3" />}
-						/>
+						<div>
+							<div className="flex items-center justify-between mb-3">
+								<span className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+									<ZoomIn className="w-3 h-3" /> Zoom
+								</span>
+								<span className="text-xs font-medium text-muted-foreground">
+									{refineZoom.toFixed(1)}x
+								</span>
+							</div>
+							<Slider
+								min={0.5}
+								max={3}
+								step={0.1}
+								value={[refineZoom]}
+								onValueChange={(val) => setRefineZoom(val[0])}
+							/>
+						</div>
 
-						<div className="pt-4 border-t border-slate-100">
+						<div className="pt-4 border-t border-border">
 							<Button
 								variant="secondary"
-								className="w-full bg-slate-50 border border-slate-100 text-slate-600"
+								className="w-full"
 								onClick={clearMask}
-								icon={<RotateCw className="w-4 h-4" />}
 							>
+								<RotateCw className="w-4 h-4" />
 								Reset All Edits
 							</Button>
 						</div>
@@ -124,7 +140,7 @@ export default function EditorSidebar() {
 
 						<div className="pt-8">
 							<Button
-								variant="primary"
+								variant="default"
 								className="w-full"
 								onClick={() => setIsCleanupMode(false)}
 							>
@@ -135,7 +151,7 @@ export default function EditorSidebar() {
 				) : (
 					<div className="space-y-8 animate-in slide-in-from-left duration-300">
 						<div>
-							<h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+							<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
 								<Palette className="w-3 h-3" /> Background
 							</h4>
 							<div className="flex flex-wrap gap-2.5">
@@ -144,7 +160,7 @@ export default function EditorSidebar() {
 										type="button"
 										key={color}
 										onClick={() => setBgColor(color)}
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 ${bgColor === color ? "border-indigo-600 ring-4 ring-indigo-50" : "border-transparent shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 ${bgColor === color ? "border-primary ring-4 ring-primary/10" : "border-transparent shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
 										style={{
 											backgroundColor:
 												color === "transparent" ? undefined : color,
@@ -154,7 +170,7 @@ export default function EditorSidebar() {
 								<div className="relative group">
 									<button
 										type="button"
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 flex items-center justify-center bg-white ${!BACKGROUND_COLORS.includes(bgColor) && bgColor !== "transparent" ? "border-indigo-600 ring-4 ring-indigo-50" : "border-slate-100 shadow-sm"}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 flex items-center justify-center bg-card ${!BACKGROUND_COLORS.includes(bgColor) && bgColor !== "transparent" ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
 										style={{
 											backgroundColor: !BACKGROUND_COLORS.includes(bgColor)
 												? bgColor
@@ -165,7 +181,7 @@ export default function EditorSidebar() {
 										}
 									>
 										<Palette
-											className={`w-4 h-4 ${!BACKGROUND_COLORS.includes(bgColor) ? "text-white mix-blend-difference" : "text-slate-400"}`}
+											className={`w-4 h-4 ${!BACKGROUND_COLORS.includes(bgColor) ? "text-primary-foreground mix-blend-difference" : "text-muted-foreground"}`}
 										/>
 									</button>
 									<input
@@ -182,7 +198,7 @@ export default function EditorSidebar() {
 						</div>
 
 						<div>
-							<h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+							<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
 								<Maximize className="w-3 h-3" /> Transform
 							</h4>
 							<div className="grid grid-cols-3 gap-2">
@@ -196,14 +212,14 @@ export default function EditorSidebar() {
 								</Button>
 								<Button
 									variant="secondary"
-									className={`p-0 h-10 ${flipX ? "bg-indigo-50 text-indigo-600 border-indigo-100" : ""}`}
+									className={`p-0 h-10 ${flipX ? "bg-primary/10 text-primary border-primary/20" : ""}`}
 									onClick={() => setFlipX(!flipX)}
 								>
 									<FlipHorizontal className="w-4 h-4" />
 								</Button>
 								<Button
 									variant="secondary"
-									className={`p-0 h-10 ${flipY ? "bg-indigo-50 text-indigo-600 border-indigo-100" : ""}`}
+									className={`p-0 h-10 ${flipY ? "bg-primary/10 text-primary border-primary/20" : ""}`}
 									onClick={() => setFlipY(!flipY)}
 								>
 									<FlipVertical className="w-4 h-4" />
@@ -211,23 +227,31 @@ export default function EditorSidebar() {
 							</div>
 						</div>
 
-						<Slider
-							label="Zoom"
-							min={1}
-							max={3}
-							step={0.1}
-							value={zoom}
-							onChange={setZoom}
-							icon={<ZoomIn className="w-3 h-3" />}
-						/>
+						<div>
+							<div className="flex items-center justify-between mb-3">
+								<span className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+									<ZoomIn className="w-3 h-3" /> Zoom
+								</span>
+								<span className="text-xs font-medium text-muted-foreground">
+									{zoom.toFixed(1)}x
+								</span>
+							</div>
+							<Slider
+								min={1}
+								max={3}
+								step={0.1}
+								value={[zoom]}
+								onValueChange={(val) => setZoom(val[0])}
+							/>
+						</div>
 
-						<div className="pt-4 border-t border-slate-100">
+						<div className="pt-4 border-t border-border">
 							<Button
 								variant="outline"
 								className="w-full h-14 rounded-2xl"
-								icon={<Paintbrush className="w-5 h-5" />}
 								onClick={() => setIsCleanupMode(true)}
 							>
+								<Paintbrush className="w-5 h-5" />
 								Refine Edges
 							</Button>
 						</div>
@@ -236,29 +260,33 @@ export default function EditorSidebar() {
 			</div>
 
 			{/* Shortcuts Help Section */}
-			<div className="p-6 bg-slate-50 border-t border-slate-200">
+			<div className="p-6 bg-muted border-t border-border">
 				<div className="flex items-center gap-2 mb-3">
-					<Keyboard className="w-3.5 h-3.5 text-slate-500" />
-					<h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+					<Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
+					<h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
 						Shortcuts
 					</h4>
 				</div>
 				<div className="space-y-2.5">
 					<div className="flex items-center justify-between text-[11px]">
-						<span className="text-slate-600 font-medium">Pan View</span>
-						<span className="font-mono bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-950 shadow-xs font-bold">
+						<span className="text-muted-foreground font-medium">Pan View</span>
+						<span className="font-mono bg-card px-2 py-0.5 rounded-md border border-border text-foreground shadow-xs font-bold">
 							Space + Drag
 						</span>
 					</div>
 					<div className="flex items-center justify-between text-[11px]">
-						<span className="text-slate-600 font-medium">Zoom In/Out</span>
-						<span className="font-mono bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-950 shadow-xs font-bold">
+						<span className="text-muted-foreground font-medium">
+							Zoom In/Out
+						</span>
+						<span className="font-mono bg-card px-2 py-0.5 rounded-md border border-border text-foreground shadow-xs font-bold">
 							Alt + Wheel
 						</span>
 					</div>
 					<div className="flex items-center justify-between text-[11px]">
-						<span className="text-slate-600 font-medium">Natural Pan</span>
-						<span className="font-mono bg-white px-2 py-0.5 rounded-md border border-slate-300 text-slate-950 shadow-xs font-bold">
+						<span className="text-muted-foreground font-medium">
+							Natural Pan
+						</span>
+						<span className="font-mono bg-card px-2 py-0.5 rounded-md border border-border text-foreground shadow-xs font-bold">
 							Mouse Wheel
 						</span>
 					</div>

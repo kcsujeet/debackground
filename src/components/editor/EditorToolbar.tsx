@@ -1,6 +1,6 @@
 import { Check, X } from "lucide-react";
-import Badge from "../ui/Badge";
-import Button from "../ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { useEditorStore } from "./useEditorStore";
 
 interface EditorToolbarProps {
@@ -20,22 +20,18 @@ export default function EditorToolbar({ onExit, onSave }: EditorToolbarProps) {
 					type="button"
 					className="bg-white/80 backdrop-blur-md border border-slate-200"
 					onClick={onExit}
-					icon={<X className="w-4 h-4" />}
 				>
+					<X className="w-4 h-4" />
 					Exit Editor
 				</Button>
-				<Badge variant={isCleanupMode ? "amber" : "indigo"}>
+				<Badge variant={isCleanupMode ? "secondary" : "default"}>
 					{isCleanupMode ? "Refine Mode" : "Compose Mode"}
 				</Badge>
 			</div>
 
 			<div className="flex gap-2 pointer-events-auto">
-				<Button
-					variant="primary"
-					size="sm"
-					icon={<Check className="w-4 h-4" />}
-					onClick={onSave}
-				>
+				<Button variant="default" size="sm" onClick={onSave}>
+					<Check className="w-4 h-4" />
 					Apply & Done
 				</Button>
 			</div>

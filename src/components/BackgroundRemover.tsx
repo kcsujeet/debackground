@@ -11,9 +11,16 @@ import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import ImageEditor from "./ImageEditor";
-import Badge from "./ui/Badge";
-import Button from "./ui/Button";
-import Card from "./ui/Card";
+import { Badge } from "./ui/Badge";
+import { Button } from "./ui/Button";
+import {
+	Card,
+	CardAction,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "./ui/Card";
+import { Dialog, DialogContent } from "./ui/dialog";
 
 export default function BackgroundRemover() {
 	const [image, setImage] = useState<string | null>(null);
@@ -113,7 +120,7 @@ export default function BackgroundRemover() {
 						</div>
 						<input
 							type="file"
-							className="hidden"
+							className="sr-only"
 							onChange={handleUpload}
 							accept="image/*"
 						/>
@@ -131,13 +138,13 @@ export default function BackgroundRemover() {
 				</div>
 			) : (
 				<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-					<Card
-						title={
-							<div className="flex items-center gap-3">
+					<Card className="rounded-xl overflow-hidden">
+						<CardHeader className="border-b p-4">
+							<CardTitle>
 								{!isProcessing && processedImage && (
 									<div className="flex items-center gap-4">
 										<Badge
-											variant="indigo"
+											variant="secondary"
 											className="bg-primary/20 text-primary border-primary/20 font-bold uppercase tracking-wider text-[10px]"
 										>
 											Result
@@ -147,130 +154,141 @@ export default function BackgroundRemover() {
 										</span>
 									</div>
 								)}
-							</div>
-						}
-						actions={
-							<div className="flex items-center gap-2">
-								{isProcessing ? (
-									<Badge variant="indigo" className="animate-pulse">
-										Processing
-									</Badge>
-								) : (
-									<>
+							</CardTitle>
+							<CardAction>
+								<div className="flex items-center gap-2">
+									{isProcessing ? (
+										<Badge variant="secondary" className="animate-pulse">
+											Processing
+										</Badge>
+									) : (
+										<>
+											<Button
+												variant="ghost"
+												size="sm"
+												onClick={reset}
+												title="Discard"
+											>
+												<Trash2 className="w-4 h-4 text-muted-foreground" />
+											</Button>
+											{processedImage && (
+												<>
+													<Button
+														variant="secondary"
+														size="sm"
+														onClick={() => setShowEditor(true)}
+													>
+														<Maximize className="w-4 h-4" />
+														Edit & Refine
+													</Button>
+													<Button
+														variant="default"
+														size="sm"
+														onClick={download}
+														className="shadow-lg shadow-primary/20"
+													>
+														<Download className="w-4 h-4" />
+														Download
+													</Button>
+												</>
+											)}
+										</>
+									)}
+								</div>
+							</CardAction>
+						</CardHeader>
+						<CardContent className="p-0">
+							<div className="relative w-full h-[500px] md:h-[600px] max-h-[70vh] bg-card bg-checkered flex items-center justify-center overflow-hidden">
+								{/* Background comparison or initial state */}
+								{image && !processedImage && !isProcessing && (
+									<img
+										src={image}
+										alt="Original"
+										className="max-w-full max-h-full object-contain"
+									/>
+								)}
+
+								{/* Unified Comparison Slider */}
+								{image && processedImage && !isProcessing && (
+									<BeforeAfterSlider
+										beforeImage={image}
+										afterImage={processedImage}
+									/>
+								)}
+
+								{/* Loading State */}
+								{isProcessing && (
+									<div className="absolute inset-0 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center z-20 text-center p-8">
+										<div className="relative mb-6">
+											<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse" />
+											<Loader2 className="w-12 h-12 text-primary animate-spin relative" />
+										</div>
+										<h4 className="text-lg font-bold text-foreground mb-1">
+											{status || "Almost there..."}
+										</h4>
+										<p className="text-sm text-muted-foreground max-w-[200px]">
+											Processing locally in your browser
+										</p>
+									</div>
+								)}
+
+								{/* Error State */}
+								{error && (
+									<div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center z-30 p-8 text-center">
+										<div className="p-4 bg-rose-500/10 rounded-2xl mb-4 border border-rose-500/20">
+											<X className="w-8 h-8 text-rose-500" />
+										</div>
+										<h4 className="text-lg font-bold text-rose-500 mb-2">
+											Processing Error
+										</h4>
+										<p className="text-muted-foreground text-sm mb-6 max-w-xs">
+											{error}
+										</p>
 										<Button
-											variant="ghost"
+											variant="default"
 											size="sm"
-											onClick={reset}
-											icon={<Trash2 className="w-4 h-4 text-slate-400" />}
-											title="Discard"
-										/>
-										{processedImage && (
-											<>
-												<Button
-													variant="secondary"
-													size="sm"
-													onClick={() => setShowEditor(true)}
-													icon={<Maximize className="w-4 h-4" />}
-													className="bg-secondary hover:bg-secondary/80 text-secondary-foreground"
-												>
-													Edit & Refine
-												</Button>
-												<Button
-													variant="primary"
-													size="sm"
-													onClick={download}
-													icon={<Download className="w-4 h-4" />}
-													className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-												>
-													Download
-												</Button>
-											</>
-										)}
-									</>
+											onClick={() => {
+												if (image && workerRef.current) {
+													setError(null);
+													setIsProcessing(true);
+													workerRef.current.postMessage({
+														action: "process",
+														imageData: image,
+													});
+												}
+											}}
+										>
+											Retry Processing
+										</Button>
+									</div>
 								)}
 							</div>
-						}
-					>
-						<div className="relative w-full h-[500px] md:h-[600px] max-h-[70vh] bg-card bg-checkered flex items-center justify-center overflow-hidden ring-1 ring-border shadow-inner">
-							{/* Background comparison or initial state */}
-							{image && !processedImage && !isProcessing && (
-								<img
-									src={image}
-									alt="Original"
-									className="max-w-full max-h-full object-contain"
-								/>
-							)}
-
-							{/* Unified Comparison Slider */}
-							{image && processedImage && !isProcessing && (
-								<BeforeAfterSlider
-									beforeImage={image}
-									afterImage={processedImage}
-								/>
-							)}
-
-							{/* Loading State */}
-							{isProcessing && (
-								<div className="absolute inset-0 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center z-20 text-center p-8">
-									<div className="relative mb-6">
-										<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse" />
-										<Loader2 className="w-12 h-12 text-primary animate-spin relative" />
-									</div>
-									<h4 className="text-lg font-bold text-text-primary mb-1">
-										{status || "Almost there..."}
-									</h4>
-									<p className="text-sm text-text-secondary max-w-[200px]">
-										Processing locally in your browser
-									</p>
-								</div>
-							)}
-
-							{/* Error State */}
-							{error && (
-								<div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center z-30 p-8 text-center">
-									<div className="p-4 bg-rose-500/10 rounded-2xl mb-4 border border-rose-500/20">
-										<X className="w-8 h-8 text-rose-500" />
-									</div>
-									<h4 className="text-lg font-bold text-rose-500 mb-2">
-										Processing Error
-									</h4>
-									<p className="text-text-secondary text-sm mb-6 max-w-xs">
-										{error}
-									</p>
-									<Button
-										variant="primary"
-										size="sm"
-										onClick={() => {
-											if (image && workerRef.current) {
-												setError(null);
-												setIsProcessing(true);
-												workerRef.current.postMessage({
-													action: "process",
-													imageData: image,
-												});
-											}
-										}}
-									>
-										Retry Processing
-									</Button>
-								</div>
-							)}
-						</div>
+						</CardContent>
 					</Card>
 				</div>
 			)}
 
-			{showEditor && processedImage && (
-				<ImageEditor
-					image={processedImage}
-					sourceImage={processedImage}
-					onSave={(url: string) => {
-						setProcessedImage(url);
-						setShowEditor(false);
-					}}
-					onCancel={() => setShowEditor(false)}
-				/>
-			)}
+			<Dialog
+				open={showEditor && !!processedImage}
+				onOpenChange={(open) => !open && setShowEditor(false)}
+			>
+				<DialogContent
+					className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 border-0 bg-transparent"
+					showCloseButton={false}
+				>
+					{processedImage && (
+						<ImageEditor
+							image={processedImage}
+							sourceImage={processedImage}
+							onSave={(url: string) => {
+								setProcessedImage(url);
+								setShowEditor(false);
+							}}
+							onCancel={() => setShowEditor(false)}
+						/>
+					)}
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

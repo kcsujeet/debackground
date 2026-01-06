@@ -1,61 +1,61 @@
-import type React from "react";
+import * as SliderPrimitive from "@radix-ui/react-slider";
+import * as React from "react";
 
-interface SliderProps {
-	label?: string;
-	min: number;
-	max: number;
-	step?: number;
-	value: number;
-	onChange: (value: number) => void;
-	icon?: React.ReactNode;
-}
+import { cn } from "@/lib/utils";
 
-const Slider: React.FC<SliderProps> = ({
-	label,
-	min,
-	max,
-	step = 1,
+function Slider({
+	className,
+	defaultValue,
 	value,
-	onChange,
-	icon,
-}) => {
-	const progress = ((value - min) / (max - min)) * 100;
+	min = 0,
+	max = 100,
+	...props
+}: React.ComponentProps<typeof SliderPrimitive.Root>) {
+	const _values = React.useMemo(
+		() =>
+			Array.isArray(value)
+				? value
+				: Array.isArray(defaultValue)
+					? defaultValue
+					: [min, max],
+		[value, defaultValue, min, max],
+	);
 
 	return (
-		<div className="space-y-3 w-full">
-			{label && (
-				<div className="flex items-center justify-between">
-					<span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-						{icon} {label}
-					</span>
-					<span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-lg">
-						{value.toFixed(1)}
-					</span>
-				</div>
+		<SliderPrimitive.Root
+			data-slot="slider"
+			defaultValue={defaultValue}
+			value={value}
+			min={min}
+			max={max}
+			className={cn(
+				"relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
+				className,
 			)}
-			<div className="relative h-6 flex items-center group">
-				<div className="absolute w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-					<div
-						className="h-full bg-indigo-500 transition-all duration-150"
-						style={{ width: `${progress}%` }}
-					/>
-				</div>
-				<input
-					type="range"
-					min={min}
-					max={max}
-					step={step}
-					value={value}
-					onChange={(e) => onChange(Number(e.target.value))}
-					className="absolute w-full h-full opacity-0 cursor-pointer z-10"
+			{...props}
+		>
+			<SliderPrimitive.Track
+				data-slot="slider-track"
+				className={cn(
+					"bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
+				)}
+			>
+				<SliderPrimitive.Range
+					data-slot="slider-range"
+					className={cn(
+						"bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
+					)}
 				/>
-				<div
-					className="absolute w-4 h-4 bg-white border-2 border-indigo-500 rounded-full shadow-md transition-all duration-150 group-hover:scale-125 pointer-events-none"
-					style={{ left: `calc(${progress}% - 8px)` }}
+			</SliderPrimitive.Track>
+			{Array.from({ length: _values.length }, (_, index) => (
+				<SliderPrimitive.Thumb
+					data-slot="slider-thumb"
+					key={index}
+					className="border-primary ring-ring/50 block size-4 shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
 				/>
-			</div>
-		</div>
+			))}
+		</SliderPrimitive.Root>
 	);
-};
+}
 
-export default Slider;
+export { Slider };
