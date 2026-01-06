@@ -177,7 +177,7 @@ export default function RefineOverlay() {
 	return (
 		<div
 			ref={containerRef}
-			className={`absolute inset-0 z-50 bg-background overflow-hidden flex items-center justify-center ${isSpacePressed ? (isDrawing ? "cursor-grabbing" : "cursor-grab") : "cursor-none"}`}
+			className={`absolute inset-0 z-50 bg-checkered overflow-hidden flex items-center justify-center ${isSpacePressed ? (isDrawing ? "cursor-grabbing" : "cursor-grab") : "cursor-none"}`}
 			onMouseDown={handleStart}
 			onMouseMove={handleMouseMove}
 			onMouseUp={handleUp}
@@ -203,7 +203,7 @@ export default function RefineOverlay() {
 					<img
 						src={processedImageSource}
 						alt="Refine"
-						className="max-w-[85vw] max-h-[85vh] w-auto h-auto block pointer-events-none select-none bg-checkered"
+						className="max-w-[85vw] max-h-[85vh] w-auto h-auto block pointer-events-none select-none"
 					/>
 					<canvas
 						ref={previewCanvasRef}
