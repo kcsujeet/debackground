@@ -198,7 +198,7 @@ export default function BackgroundRemover() {
 							</CardAction>
 						</CardHeader>
 						<CardContent className="p-0">
-							<div className="relative w-full h-[500px] md:h-[600px] max-h-[70vh] bg-card bg-checkered flex items-center justify-center overflow-hidden">
+							<div className="relative w-full h-[500px] md:h-[600px] max-h-[70vh] bg-card flex items-center justify-center overflow-hidden">
 								{/* Background comparison or initial state */}
 								{image && !processedImage && !isProcessing && (
 									<img
