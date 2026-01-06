@@ -57,7 +57,7 @@ export default function BeforeAfterSlider({
 	return (
 		<div
 			ref={containerRef}
-			className={`relative w-full aspect-16/10 rounded-xl overflow-hidden cursor-ew-resize select-none border border-border shadow-2xl ${showCheckered ? "bg-checkered" : "bg-surface"}`}
+			className={`relative w-full aspect-16/10 rounded-xl overflow-hidden cursor-ew-resize select-none border border-border shadow-2xl ${showCheckered ? "bg-checkered" : "bg-card"}`}
 			onMouseDown={handleMouseDown}
 			onTouchStart={handleMouseDown}
 			role="img"

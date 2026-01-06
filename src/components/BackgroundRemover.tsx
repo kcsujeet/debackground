@@ -96,25 +96,20 @@ export default function BackgroundRemover() {
 		<div className="max-w-5xl mx-auto p-4 md:p-8 space-y-12">
 			{!image ? (
 				<div className="flex flex-col items-center">
-					<label className="relative group w-full max-w-2xl aspect-video flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-4xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-all duration-300 bg-white shadow-2xl shadow-slate-200/50 overflow-hidden">
+					<label className="relative group w-full max-w-2xl aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-4xl cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all duration-300 bg-surface/30 backdrop-blur-xl shadow-2xl overflow-hidden">
 						<div className="absolute inset-0 bg-linear-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
 						<div className="relative flex flex-col items-center text-center p-8">
-							<div className="p-6 bg-indigo-50 rounded-4xl group-hover:scale-110 group-hover:bg-indigo-100 transition-all duration-300 mb-6 shadow-sm">
-								<Upload className="w-12 h-12 text-indigo-600" />
+							<div className="p-6 bg-primary/10 rounded-lg group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500 mb-6">
+								<Upload className="w-12 h-12 text-primary" />
 							</div>
-							<h3 className="text-2xl font-bold text-slate-800 mb-2">
+							<h3 className="text-2xl font-bold text-foreground mb-2">
 								Drop your image here
 							</h3>
-							<p className="text-slate-500 max-w-xs leading-relaxed">
-								Processing is 100% local and private. Your data never leaves
-								your device.
+							<p className="text-muted-foreground max-w-xs leading-relaxed text-sm">
+								Transparent background in seconds. Processing is 100% local and
+								private.
 							</p>
-							<div className="mt-8 flex gap-3">
-								<Badge variant="indigo">PNG</Badge>
-								<Badge variant="indigo">JPG</Badge>
-								<Badge variant="indigo">WEBP</Badge>
-							</div>
 						</div>
 						<input
 							type="file"
@@ -125,11 +120,11 @@ export default function BackgroundRemover() {
 					</label>
 
 					<div className="mt-12 flex items-center gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-						<span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+						<span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
 							Powered by
 						</span>
-						<div className="flex items-center gap-2 font-black text-xl text-slate-800">
-							<Zap className="w-6 h-6 fill-indigo-500 text-indigo-500" />
+						<div className="flex items-center gap-2 font-black text-xl text-foreground">
+							<Zap className="w-6 h-6 fill-primary text-primary" />
 							<span>Transformers.js</span>
 						</div>
 					</div>
@@ -140,12 +135,17 @@ export default function BackgroundRemover() {
 						title={
 							<div className="flex items-center gap-3">
 								{!isProcessing && processedImage && (
-									<>
-										<Badge variant="indigo">Result</Badge>
-										<span className="text-xs text-text-tertiary">
+									<div className="flex items-center gap-4">
+										<Badge
+											variant="indigo"
+											className="bg-primary/20 text-primary border-primary/20 font-bold uppercase tracking-wider text-[10px]"
+										>
+											Result
+										</Badge>
+										<span className="text-sm font-medium text-muted-foreground">
 											Drag slider to compare
 										</span>
-									</>
+									</div>
 								)}
 							</div>
 						}
@@ -171,6 +171,7 @@ export default function BackgroundRemover() {
 													size="sm"
 													onClick={() => setShowEditor(true)}
 													icon={<Maximize className="w-4 h-4" />}
+													className="bg-secondary hover:bg-secondary/80 text-secondary-foreground"
 												>
 													Edit & Refine
 												</Button>
@@ -179,6 +180,7 @@ export default function BackgroundRemover() {
 													size="sm"
 													onClick={download}
 													icon={<Download className="w-4 h-4" />}
+													className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
 												>
 													Download
 												</Button>
@@ -189,7 +191,7 @@ export default function BackgroundRemover() {
 							</div>
 						}
 					>
-						<div className="relative aspect-square md:aspect-16/10 bg-surface bg-checkered flex items-center justify-center overflow-hidden">
+						<div className="relative aspect-square md:aspect-16/10 max-h-[70vh] bg-card bg-checkered flex items-center justify-center overflow-hidden">
 							{/* Background comparison or initial state */}
 							{image && !processedImage && !isProcessing && (
 								<img

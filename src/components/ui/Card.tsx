@@ -15,17 +15,21 @@ const Card: React.FC<CardProps> = ({
 }) => {
 	return (
 		<div
-			className={`bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col ${className}`}
+			className={`bg-card rounded-lg border border-border shadow-sm overflow-hidden flex flex-col ${className}`}
 		>
 			{(title || actions) && (
-				<div className="px-6 py-4 border-b border-slate-50 flex items-center justify-between bg-white">
-					{title &&
-						(typeof title === "string" ? (
-							<h3 className="text-lg font-bold text-slate-800">{title}</h3>
-						) : (
-							title
-						))}
-					{actions && <div className="flex items-center gap-2">{actions}</div>}
+				<div className="px-6 py-4 border-b border-border flex items-center justify-between">
+					<div className="flex-1">
+						{title &&
+							(typeof title === "string" ? (
+								<h3 className="text-lg font-bold tracking-tight text-card-foreground">
+									{title}
+								</h3>
+							) : (
+								title
+							))}
+					</div>
+					{actions && <div className="flex items-center gap-3">{actions}</div>}
 				</div>
 			)}
 			<div className="flex-1 overflow-auto">{children}</div>
