@@ -191,7 +191,7 @@ export default function BackgroundRemover() {
 							</div>
 						}
 					>
-						<div className="relative w-full max-h-[70vh] bg-card bg-checkered flex items-center justify-center overflow-auto ring-1 ring-border shadow-inner">
+						<div className="relative w-full h-[500px] md:h-[600px] max-h-[70vh] bg-card bg-checkered flex items-center justify-center overflow-hidden ring-1 ring-border shadow-inner">
 							{/* Background comparison or initial state */}
 							{image && !processedImage && !isProcessing && (
 								<img
