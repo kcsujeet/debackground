@@ -138,7 +138,7 @@ export default function BackgroundRemover() {
 				</div>
 			) : (
 				<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-					<Card className="rounded-xl overflow-hidden">
+					<Card className="rounded-xl overflow-hidden gap-0 pb-0">
 						<CardHeader className="border-b">
 							<CardTitle>
 								{!isProcessing && processedImage && (
