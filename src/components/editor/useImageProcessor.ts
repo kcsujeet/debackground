@@ -115,7 +115,7 @@ export function useImageProcessor() {
 												data[i] = sourceData[i];
 												data[i + 1] = sourceData[i + 1];
 												data[i + 2] = sourceData[i + 2];
-												data[i + 3] = 255;
+												data[i + 3] = sourceData[i + 3];
 											}
 										}
 									}
