@@ -82,6 +82,14 @@ export default function EditorSidebar() {
 									</span>
 								</button>
 							</div>
+
+							<div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 mt-4">
+								<p className="text-[10px] leading-relaxed text-amber-700 font-medium">
+									Use the <strong>Eraser</strong> to remove leftover background
+									and <strong>Restore</strong> to bring back accidentally
+									removed details.
+								</p>
+							</div>
 						</div>
 
 						<div>
@@ -128,14 +136,6 @@ export default function EditorSidebar() {
 								<RotateCw className="w-4 h-4" />
 								Reset All Edits
 							</Button>
-						</div>
-
-						<div className="bg-amber-50 rounded-2xl p-4 border border-amber-100">
-							<p className="text-[10px] leading-relaxed text-amber-700 font-medium">
-								Use the <strong>Eraser</strong> to remove leftover background
-								and <strong>Restore</strong> to bring back accidentally removed
-								details.
-							</p>
 						</div>
 
 						<div className="pt-8">

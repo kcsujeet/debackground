@@ -139,7 +139,7 @@ export default function BackgroundRemover() {
 			) : (
 				<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
 					<Card className="rounded-xl overflow-hidden">
-						<CardHeader className="border-b p-4">
+						<CardHeader className="border-b">
 							<CardTitle>
 								{!isProcessing && processedImage && (
 									<div className="flex items-center gap-4">
@@ -273,7 +273,7 @@ export default function BackgroundRemover() {
 				onOpenChange={(open) => !open && setShowEditor(false)}
 			>
 				<DialogContent
-					className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 border-0 bg-transparent"
+					className="min-w-[95vw] h-[90vh] p-0 rounded"
 					showCloseButton={false}
 				>
 					{processedImage && (

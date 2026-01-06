@@ -122,8 +122,8 @@ export default function ImageEditor({
 	};
 
 	return (
-		<div className="w-full h-full bg-background flex flex-col items-center justify-center p-0 md:p-6 lg:p-12">
-			<div className="w-full h-full max-w-[1400px] bg-card rounded-3xl border border-border shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+		<div className="w-full h-full bg-background flex flex-col items-center justify-center">
+			<div className="w-full h-full bg-card border border-border shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
 				{/* Workspace */}
 				<div className="flex-1 relative bg-muted overflow-hidden">
 					{isCleanupMode ? <RefineOverlay /> : <CropperWorkspace />}
