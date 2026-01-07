@@ -177,7 +177,7 @@ export default function RefineOverlay() {
 	return (
 		<div
 			ref={containerRef}
-			className={`absolute inset-0 z-50 bg-checkered overflow-hidden flex items-center justify-center ${isSpacePressed ? (isDrawing ? "cursor-grabbing" : "cursor-grab") : "cursor-none"}`}
+			className={`absolute inset-0 z-40 bg-checkered overflow-hidden flex items-center justify-center ${isSpacePressed ? (isDrawing ? "cursor-grabbing" : "cursor-grab") : "cursor-none"}`}
 			onMouseDown={handleStart}
 			onMouseMove={handleMouseMove}
 			onMouseUp={handleUp}

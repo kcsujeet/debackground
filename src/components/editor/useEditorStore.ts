@@ -10,7 +10,8 @@ interface EditorState {
 	// Crop/Transform
 	crop: Point;
 	zoom: number;
-	aspect: number;
+	aspect: number | undefined;
+	imageAspect: number | undefined;
 	rotation: number;
 	flipX: boolean;
 	flipY: boolean;
@@ -43,7 +44,8 @@ interface EditorActions {
 	setCrop: (crop: Point | ((p: Point) => Point)) => void;
 	setZoom: (zoom: number | ((z: number) => number)) => void;
 
-	setAspect: (aspect: number) => void;
+	setAspect: (aspect: number | undefined) => void;
+	setImageAspect: (aspect: number) => void;
 	setRotation: (rotation: number | ((r: number) => number)) => void;
 	setFlipX: (flip: boolean) => void;
 	setFlipY: (flip: boolean) => void;
@@ -76,7 +78,8 @@ const initialState: EditorState = {
 	processedImageSource: "",
 	crop: { x: 0, y: 0 },
 	zoom: 1,
-	aspect: 4 / 3,
+	aspect: undefined,
+	imageAspect: undefined,
 	rotation: 0,
 	flipX: false,
 	flipY: false,
@@ -127,6 +130,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 		})),
 
 	setAspect: (aspect) => set({ aspect }),
+	setImageAspect: (aspect: number) => {
+		set({ imageAspect: aspect });
+	},
 	setRotation: (rotation) =>
 		set((state) => ({
 			rotation:

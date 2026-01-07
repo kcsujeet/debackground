@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-
 import CropperWorkspace from "./editor/CropperWorkspace";
 import EditorSidebar from "./editor/EditorSidebar";
 import EditorToolbar from "./editor/EditorToolbar";

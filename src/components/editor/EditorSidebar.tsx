@@ -4,9 +4,13 @@ import {
 	FlipVertical,
 	Keyboard,
 	Maximize,
+	Monitor,
+	Move,
 	Paintbrush,
 	Palette,
 	RotateCw,
+	Smartphone,
+	Square,
 	Undo2,
 	ZoomIn,
 } from "lucide-react";
@@ -49,6 +53,9 @@ export default function EditorSidebar() {
 		setFlipY,
 		zoom,
 		setZoom,
+		aspect,
+		setAspect,
+		imageAspect,
 	} = useEditorStore();
 
 	return (
@@ -223,6 +230,62 @@ export default function EditorSidebar() {
 									onClick={() => setFlipY(!flipY)}
 								>
 									<FlipVertical className="w-4 h-4" />
+								</Button>
+							</div>
+						</div>
+
+						<div>
+							<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+								<Square className="w-3 h-3" /> Aspect Ratio
+							</h4>
+							<div className="grid grid-cols-3 gap-2">
+								<Button
+									variant="secondary"
+									className={`h-auto py-2.5 flex-col gap-1 text-[10px] uppercase font-bold tracking-tight ${aspect === imageAspect ? "bg-primary/10 text-primary border-primary/20" : ""}`}
+									onClick={() => setAspect(imageAspect)}
+								>
+									<Maximize className="w-3.5 h-3.5" />
+									Original
+								</Button>
+								<Button
+									variant="secondary"
+									className={`h-auto py-2.5 flex-col gap-1 text-[10px] uppercase font-bold tracking-tight ${aspect === undefined ? "bg-primary/10 text-primary border-primary/20" : ""}`}
+									onClick={() => setAspect(undefined)}
+								>
+									<Move className="w-3.5 h-3.5" />
+									Free
+								</Button>
+								<Button
+									variant="secondary"
+									className={`h-auto py-2.5 flex-col gap-1 text-[10px] uppercase font-bold tracking-tight ${aspect === 1 ? "bg-primary/10 text-primary border-primary/20" : ""}`}
+									onClick={() => setAspect(1)}
+								>
+									<Square className="w-3.5 h-3.5" />
+									1:1
+								</Button>
+								<Button
+									variant="secondary"
+									className={`h-auto py-2.5 flex-col gap-1 text-[10px] uppercase font-bold tracking-tight ${aspect === 4 / 3 ? "bg-primary/10 text-primary border-primary/20" : ""}`}
+									onClick={() => setAspect(4 / 3)}
+								>
+									<div className="w-4 h-3 border-2 border-current rounded-sm shrink-0" />
+									4:3
+								</Button>
+								<Button
+									variant="secondary"
+									className={`h-auto py-2.5 flex-col gap-1 text-[10px] uppercase font-bold tracking-tight ${aspect === 16 / 9 ? "bg-primary/10 text-primary border-primary/20" : ""}`}
+									onClick={() => setAspect(16 / 9)}
+								>
+									<Monitor className="w-3.5 h-3.5" />
+									16:9
+								</Button>
+								<Button
+									variant="secondary"
+									className={`h-auto py-2.5 flex-col gap-1 text-[10px] uppercase font-bold tracking-tight ${aspect === 9 / 16 ? "bg-primary/10 text-primary border-primary/20" : ""}`}
+									onClick={() => setAspect(9 / 16)}
+								>
+									<Smartphone className="w-3.5 h-3.5" />
+									9:16
 								</Button>
 							</div>
 						</div>

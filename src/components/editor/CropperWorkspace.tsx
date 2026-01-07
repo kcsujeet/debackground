@@ -10,7 +10,7 @@ export default function CropperWorkspace() {
 		zoom,
 		setZoom,
 		aspect,
-		setAspect,
+		setImageAspect,
 		rotation,
 		bgColor,
 		setCroppedAreaPixels,
@@ -51,13 +51,14 @@ export default function CropperWorkspace() {
 				image={processedImageSource}
 				crop={crop}
 				zoom={zoom}
-				aspect={aspect}
+				aspect={aspect || undefined}
 				rotation={rotation}
 				onCropChange={setCrop}
 				onZoomChange={setZoom}
 				onMediaLoaded={(mediaSize) => {
-					setAspect(mediaSize.naturalWidth / mediaSize.naturalHeight);
+					setImageAspect(mediaSize.naturalWidth / mediaSize.naturalHeight);
 				}}
+				objectFit="contain"
 				onCropComplete={onCropComplete}
 				zoomWithScroll={false} // Disable default to use our Alt+Wheel
 				style={{

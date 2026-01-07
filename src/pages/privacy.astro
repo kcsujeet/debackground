@@ -1,0 +1,71 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+---
+
+<Layout title="Privacy Policy | PureBG">
+	<main class="min-h-screen bg-background flex flex-col pt-24">
+		<Header client:load />
+		
+		<div class="grow px-6 pb-24">
+			<div class="max-w-3xl mx-auto space-y-8">
+				<a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+					Back to Home
+				</a>
+
+				<header class="space-y-4">
+					<h1 class="text-4xl md:text-5xl font-bold tracking-tight text-foreground">Privacy Policy</h1>
+					<p class="text-muted-foreground">Last updated: January 2026</p>
+				</header>
+
+				<section class="prose prose-slate dark:prose-invert max-w-none space-y-8 text-muted-foreground leading-relaxed">
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">1. Privacy First Philosophy</h2>
+						<p>
+							PureBG is built with a "Privacy First" philosophy. Unlike traditional background removal services 
+							that upload your photos to a server, PureBG processes everything **entirely on your device**.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">2. Data Collection</h2>
+						<p>
+							We do **not** collect, store, or transmit your images. Your photos never leave your computer. 
+							Because processing happens locally in your browser using WebAssembly and Web Workers, we have 
+							no access to your visual data.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">3. Tracking & Analytics</h2>
+						<p>
+							We do not use invasive tracking or third-party analytics that profile you. We may use minimal, 
+							anonymous technical logs to improve the performance of our local AI models, but these never 
+							contain personal information or image data.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">4. Local Storage</h2>
+						<p>
+							The application may use your browser's local storage or indexedDB to cache AI models for 
+							faster subsequent loads. This data stays on your machine and can be cleared at any time 
+							via your browser settings.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">5. Contact</h2>
+						<p>
+							If you have questions about our privacy approach, please reach out via our GitHub repository.
+						</p>
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<Footer />
+	</main>
+</Layout>

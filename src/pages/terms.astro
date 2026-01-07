@@ -1,0 +1,69 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+---
+
+<Layout title="Terms of Service | PureBG">
+	<main class="min-h-screen bg-background flex flex-col pt-24">
+		<Header client:load />
+		
+		<div class="grow px-6 pb-24">
+			<div class="max-w-3xl mx-auto space-y-8">
+				<a href="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:-translate-x-1 transition-transform"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+					Back to Home
+				</a>
+
+				<header class="space-y-4">
+					<h1 class="text-4xl md:text-5xl font-bold tracking-tight text-foreground">Terms of Service</h1>
+					<p class="text-muted-foreground">Last updated: January 2026</p>
+				</header>
+
+				<section class="prose prose-slate dark:prose-invert max-w-none space-y-8 text-muted-foreground leading-relaxed">
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">1. Acceptance of Terms</h2>
+						<p>
+							By using PureBG, you agree to these terms. Because we don't have accounts, 
+							your agreement is implied by your continued use of the tool.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">2. License & Usage</h2>
+						<p>
+							PureBG is free to use for both personal and commercial projects. You own 100% of the 
+							rights to the images you process. We do not claim any ownership over your content.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">3. No Warranty</h2>
+						<p>
+							The tool is provided "as is". While we use state-of-the-art AI, we cannot guarantee 
+							perfect results for every image. We are not liable for any issues arising from the 
+							use of the processed images.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">4. Acceptable Use</h2>
+						<p>
+							You agree not to use this tool for any illegal purposes or to process content 
+							that violates others' rights.
+						</p>
+					</div>
+
+					<div class="space-y-4">
+						<h2 class="text-2xl font-semibold text-foreground">5. Changes to Tool</h2>
+						<p>
+							We reserve the right to modify or discontinue any part of the tool without notice.
+						</p>
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<Footer />
+	</main>
+</Layout>
