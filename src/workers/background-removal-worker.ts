@@ -24,13 +24,13 @@ async function loadModels() {
 			device: "wasm", // Force stable CPU/WASM mode
 		});
 
-		console.log("ModNet loaded successfully");
+		console.log("Model loaded successfully");
 		self.postMessage({ status: "ready", message: "Model ready" });
 	} catch (error: unknown) {
 		console.error("Model load error:", error);
 		self.postMessage({
 			status: "error",
-			message: `Failed to load ModNet: ${error instanceof Error ? error.message : String(error)}`,
+			message: `Failed to load model: ${error instanceof Error ? error.message : String(error)}`,
 		});
 		throw error;
 	}
@@ -45,7 +45,7 @@ self.onmessage = async (event) => {
 
 			self.postMessage({
 				status: "processing",
-				message: "Removing background (ModNet)...",
+				message: "Removing background...",
 			});
 
 			// Load image
