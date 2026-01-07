@@ -1,5 +1,3 @@
-import { Zap } from "lucide-react";
-
 export default function Header() {
 	return (
 		<nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95">
@@ -9,9 +7,7 @@ export default function Header() {
 						href="/"
 						className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity"
 					>
-						<div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-							<Zap className="w-4 h-4 text-primary-foreground fill-primary-foreground" />
-						</div>
+						<img src="/logo.svg" alt="PureBG Logo" className="w-8 h-8" />
 						<span className="text-foreground font-semibold tracking-tight">
 							PureBG
 						</span>

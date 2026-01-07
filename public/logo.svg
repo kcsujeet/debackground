@@ -1,0 +1,14 @@
+<svg width="512" height="512" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask id="gap-mask">
+      <rect x="0" y="0" width="32" height="32" fill="white"/>
+      <rect x="12" y="2" width="18" height="18" rx="4" fill="black" stroke="black" stroke-width="4"/>
+    </mask>
+  </defs>
+
+  <!-- Background Layer (Gray Outline) - Slate-400 equivalent -->
+  <rect x="2" y="12" width="18" height="18" rx="4" stroke="#94a3b8" stroke-width="2.5" mask="url(#gap-mask)"/>
+
+  <!-- Foreground Layer (Indigo Solid) - Indigo-600 equivalent (Matches button visual) -->
+  <rect x="12" y="2" width="18" height="18" rx="4" fill="#477ed8"/>
+</svg>
