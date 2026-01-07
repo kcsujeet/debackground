@@ -55,7 +55,7 @@ export default function BeforeAfterSlider({
 	}, [isDragging, handleMove]);
 
 	return (
-		<div className="w-full h-full flex items-center justify-center p-4">
+		<div className="w-full h-auto flex items-center justify-center">
 			{/* 
 				Interactive Container:
 				- Uses inline-block to shrink-wrap the base image.

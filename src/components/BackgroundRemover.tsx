@@ -7,8 +7,8 @@ import {
 	X,
 	Zap,
 } from "lucide-react";
-import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDropzone } from "react-dropzone";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import ImageEditor from "./ImageEditor";
 import { Badge } from "./ui/Badge";
@@ -60,29 +60,38 @@ export default function BackgroundRemover() {
 		};
 	}, []);
 
-	const handleUpload = useCallback(
-		async (e: React.ChangeEvent<HTMLInputElement>) => {
-			const file = e.target.files?.[0];
-			if (!file) return;
+	const processFile = useCallback((file: File) => {
+		const url = URL.createObjectURL(file);
+		setImage(url);
+		setProcessedImage(null);
+		setError(null);
+		setIsProcessing(true);
 
-			const url = URL.createObjectURL(file);
-			setImage(url);
-			setProcessedImage(null);
-			setError(null);
-			setIsProcessing(true);
+		if (workerRef.current) {
+			workerRef.current.postMessage({
+				action: "process",
+				imageData: url,
+			});
+		} else {
+			setError("Worker not initialized. Please refresh the page.");
+			setIsProcessing(false);
+		}
+	}, []);
 
-			if (workerRef.current) {
-				workerRef.current.postMessage({
-					action: "process",
-					imageData: url,
-				});
-			} else {
-				setError("Worker not initialized. Please refresh the page.");
-				setIsProcessing(false);
+	const onDrop = useCallback(
+		(acceptedFiles: File[]) => {
+			if (acceptedFiles.length > 0) {
+				processFile(acceptedFiles[0]);
 			}
 		},
-		[],
+		[processFile],
 	);
+
+	const { getRootProps, getInputProps, isDragActive } = useDropzone({
+		onDrop,
+		accept: { "image/*": [] },
+		multiple: false,
+	});
 
 	const reset = () => {
 		setImage(null);
@@ -103,35 +112,45 @@ export default function BackgroundRemover() {
 		<div className="max-w-5xl mx-auto p-4 md:p-8 space-y-12">
 			{!image ? (
 				<div className="flex flex-col items-center">
-					<label className="relative group w-full max-w-2xl aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-4xl cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all duration-300 bg-surface/30 backdrop-blur-xl shadow-2xl overflow-hidden">
-						<div className="absolute inset-0 bg-linear-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+					<div
+						{...getRootProps()}
+						className={`relative group w-full max-w-2xl min-h-[300px] md:aspect-video flex flex-col items-center justify-center border-2 border-dashed rounded-3xl md:rounded-4xl cursor-pointer transition-all duration-300 backdrop-blur-xl shadow-2xl overflow-hidden ${
+							isDragActive
+								? "border-primary bg-primary/10 ring-4 ring-primary/20"
+								: "border-white/20 bg-surface/30 hover:border-primary/60 hover:bg-primary/5"
+						}`}
+					>
+						<input {...getInputProps()} />
+						<div
+							className={`absolute inset-0 bg-linear-to-br from-indigo-500/5 to-transparent transition-opacity ${
+								isDragActive
+									? "opacity-100"
+									: "opacity-0 group-hover:opacity-100"
+							}`}
+						/>
 
-						<div className="relative flex flex-col items-center text-center p-8">
-							<div className="p-6 bg-primary/10 rounded-lg group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500 mb-6">
-								<Upload className="w-12 h-12 text-primary" />
+						<div className="relative flex flex-col items-center text-center p-6 md:p-8">
+							<div className="p-4 md:p-6 bg-primary/10 rounded-lg group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500 mb-4 md:mb-6">
+								<Upload className="w-8 h-8 md:w-12 md:h-12 text-primary" />
 							</div>
-							<h3 className="text-2xl font-bold text-foreground mb-2">
-								Drop your image here
+							<h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
+								{isDragActive
+									? "Drop to remove background"
+									: "Drop your image here"}
 							</h3>
-							<p className="text-muted-foreground max-w-xs leading-relaxed text-sm">
+							<p className="text-muted-foreground max-w-[240px] md:max-w-xs leading-relaxed text-xs md:text-sm">
 								Transparent background in seconds. Processing is 100% local and
 								private.
 							</p>
 						</div>
-						<input
-							type="file"
-							className="sr-only"
-							onChange={handleUpload}
-							accept="image/*"
-						/>
-					</label>
+					</div>
 
-					<div className="mt-12 flex items-center gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-						<span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+					<div className="mt-8 md:mt-12 flex flex-col sm:flex-row items-center gap-4 sm:gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+						<span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground">
 							Powered by
 						</span>
-						<div className="flex items-center gap-2 font-black text-xl text-foreground">
-							<Zap className="w-6 h-6 fill-primary text-primary" />
+						<div className="flex items-center gap-2 font-black text-lg md:text-xl text-foreground">
+							<Zap className="w-5 h-5 md:w-6 md:h-6 fill-primary text-primary" />
 							<span>Transformers.js</span>
 						</div>
 					</div>
@@ -149,7 +168,7 @@ export default function BackgroundRemover() {
 										>
 											Result
 										</Badge>
-										<span className="text-sm font-medium text-muted-foreground">
+										<span className="text-sm font-medium text-muted-foreground hidden @[450px]/card-header:inline">
 											Drag slider to compare
 										</span>
 									</div>
@@ -179,7 +198,9 @@ export default function BackgroundRemover() {
 														onClick={() => setShowEditor(true)}
 													>
 														<Maximize className="w-4 h-4" />
-														Edit & Refine
+														<span className="hidden @[600px]/card-header:inline">
+															Edit & Refine
+														</span>
 													</Button>
 													<Button
 														variant="default"
@@ -188,7 +209,9 @@ export default function BackgroundRemover() {
 														className="shadow-lg shadow-primary/20"
 													>
 														<Download className="w-4 h-4" />
-														Download
+														<span className="hidden @[500px]/card-header:inline">
+															Download
+														</span>
 													</Button>
 												</>
 											)}
@@ -198,7 +221,7 @@ export default function BackgroundRemover() {
 							</CardAction>
 						</CardHeader>
 						<CardContent className="p-0">
-							<div className="relative w-full h-[500px] md:h-[600px] max-h-[70vh] bg-card flex items-center justify-center overflow-hidden">
+							<div className="relative w-full h-auto min-h-[400px] bg-card flex items-center justify-center overflow-hidden">
 								{/* Background comparison or initial state */}
 								{image && !processedImage && !isProcessing && (
 									<img
