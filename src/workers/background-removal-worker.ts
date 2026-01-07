@@ -12,7 +12,7 @@ async function loadModels() {
 
 	self.postMessage({
 		status: "loading",
-		message: "Loading ModNet (Portrait Optimized)...",
+		message: "Loading model...",
 	});
 
 	try {
