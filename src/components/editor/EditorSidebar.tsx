@@ -2,7 +2,6 @@ import {
 	Eraser,
 	FlipHorizontal,
 	FlipVertical,
-	Keyboard,
 	Maximize,
 	Monitor,
 	Move,
@@ -12,6 +11,7 @@ import {
 	Smartphone,
 	Square,
 	Undo2,
+	X,
 	ZoomIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -33,7 +33,12 @@ const BACKGROUND_COLORS = [
 	"#ef4444", // Rose 500
 ];
 
-export default function EditorSidebar() {
+interface EditorSidebarProps {
+	isOpen?: boolean;
+	onClose?: () => void;
+}
+
+export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 	const {
 		isCleanupMode,
 		setIsCleanupMode,
@@ -59,7 +64,27 @@ export default function EditorSidebar() {
 	} = useEditorStore();
 
 	return (
-		<div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-border bg-card flex flex-col shrink-0">
+		<div
+			className={`
+			absolute md:relative inset-y-0 right-0 w-[280px] sm:w-80 border-l border-border bg-card flex flex-col shrink-0 z-50 transition-transform duration-300 ease-in-out
+			${isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}
+			${!isOpen ? "pointer-events-none md:pointer-events-auto" : "pointer-events-auto"}
+		`}
+		>
+			{/* Mobile Close Button */}
+			<div className="md:hidden p-4 border-b border-border flex items-center justify-between bg-muted/30">
+				<span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+					Tools & Settings
+				</span>
+				<Button
+					variant="ghost"
+					size="sm"
+					onClick={onClose}
+					className="h-8 w-8 p-0 rounded-full"
+				>
+					<X className="w-4 h-4" />
+				</Button>
+			</div>
 			<div className="p-6 space-y-8 overflow-y-auto flex-1">
 				{isCleanupMode ? (
 					<div className="space-y-8 animate-in slide-in-from-right duration-300">
@@ -167,7 +192,7 @@ export default function EditorSidebar() {
 										type="button"
 										key={color}
 										onClick={() => setBgColor(color)}
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 ${bgColor === color ? "border-primary ring-4 ring-primary/10" : "border-transparent shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 ${bgColor === color ? "border-primary ring-4 ring-primary/10" : "border-transparent shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
 										style={{
 											backgroundColor:
 												color === "transparent" ? undefined : color,
@@ -177,7 +202,7 @@ export default function EditorSidebar() {
 								<div className="relative group">
 									<button
 										type="button"
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all hover:scale-110 active:scale-95 flex items-center justify-center bg-card ${!BACKGROUND_COLORS.includes(bgColor) && bgColor !== "transparent" ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center bg-card ${!BACKGROUND_COLORS.includes(bgColor) && bgColor !== "transparent" ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
 										style={{
 											backgroundColor: !BACKGROUND_COLORS.includes(bgColor)
 												? bgColor
@@ -320,40 +345,6 @@ export default function EditorSidebar() {
 						</div>
 					</div>
 				)}
-			</div>
-
-			{/* Shortcuts Help Section */}
-			<div className="p-6 bg-muted border-t border-border">
-				<div className="flex items-center gap-2 mb-3">
-					<Keyboard className="w-3.5 h-3.5 text-muted-foreground" />
-					<h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-						Shortcuts
-					</h4>
-				</div>
-				<div className="space-y-2.5">
-					<div className="flex items-center justify-between text-[11px]">
-						<span className="text-muted-foreground font-medium">Pan View</span>
-						<span className="font-mono bg-card px-2 py-0.5 rounded-md border border-border text-foreground shadow-xs font-bold">
-							Space + Drag
-						</span>
-					</div>
-					<div className="flex items-center justify-between text-[11px]">
-						<span className="text-muted-foreground font-medium">
-							Zoom In/Out
-						</span>
-						<span className="font-mono bg-card px-2 py-0.5 rounded-md border border-border text-foreground shadow-xs font-bold">
-							Alt + Wheel
-						</span>
-					</div>
-					<div className="flex items-center justify-between text-[11px]">
-						<span className="text-muted-foreground font-medium">
-							Natural Pan
-						</span>
-						<span className="font-mono bg-card px-2 py-0.5 rounded-md border border-border text-foreground shadow-xs font-bold">
-							Mouse Wheel
-						</span>
-					</div>
-				</div>
 			</div>
 		</div>
 	);

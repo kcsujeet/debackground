@@ -87,7 +87,7 @@ export default function CropperWorkspace() {
 	};
 
 	return (
-		<div className="w-full h-full relative flex items-center justify-center bg-muted p-8 overflow-auto">
+		<div className="w-full h-full relative flex items-center justify-center bg-muted p-4 sm:p-8 overflow-hidden select-none">
 			<div
 				className={`relative shadow-2xl transition-transform duration-300 ${bgColor === "transparent" ? "bg-checkered" : ""}`}
 				style={{

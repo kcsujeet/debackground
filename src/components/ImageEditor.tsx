@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import CropperWorkspace from "./editor/CropperWorkspace";
 import EditorSidebar from "./editor/EditorSidebar";
 import EditorToolbar from "./editor/EditorToolbar";
@@ -19,6 +19,7 @@ export default function ImageEditor({
 	onSave,
 	onCancel,
 }: ImageEditorProps): React.JSX.Element {
+	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	// Initialize store with props
 	const {
 		initializeEditor,
@@ -154,15 +155,32 @@ export default function ImageEditor({
 		<div className="w-full h-full bg-background flex flex-col items-center justify-center">
 			<div className="w-full h-full bg-card border border-border shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
 				{/* Workspace */}
-				<div className="flex-1 relative bg-muted overflow-hidden">
+				<div className="flex-1 relative bg-muted overflow-hidden w-full h-full">
 					{isCleanupMode ? <RefineOverlay /> : <CropperWorkspace />}
 
 					{/* Header Overlays */}
-					<EditorToolbar onExit={onCancel} onSave={handleSave} />
+					<EditorToolbar
+						onExit={onCancel}
+						onSave={handleSave}
+						onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+					/>
 				</div>
 
-				{/* Sidebar */}
-				<EditorSidebar />
+				{/* Mobile Backdrop Overlay */}
+				{isSidebarOpen && (
+					<button
+						type="button"
+						className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 md:hidden animate-in fade-in duration-300 w-full h-full border-none p-0 cursor-default"
+						onClick={() => setIsSidebarOpen(false)}
+						aria-label="Close sidebar"
+					/>
+				)}
+
+				{/* Sidebar / Drawer */}
+				<EditorSidebar
+					isOpen={isSidebarOpen}
+					onClose={() => setIsSidebarOpen(false)}
+				/>
 			</div>
 		</div>
 	);
