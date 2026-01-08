@@ -1,5 +1,11 @@
-import { useCallback } from "react";
-import Cropper, { type Area, type Point } from "react-easy-crop";
+import { useEffect, useRef } from "react";
+import ReactCrop, {
+	type Crop,
+	centerCrop,
+	makeAspectCrop,
+	type PixelCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { useEditorStore } from "./useEditorStore";
 
 export default function CropperWorkspace() {
@@ -7,8 +13,6 @@ export default function CropperWorkspace() {
 		processedImageSource,
 		crop,
 		setCrop,
-		zoom,
-		setZoom,
 		aspect,
 		setImageAspect,
 		rotation,
@@ -16,60 +20,102 @@ export default function CropperWorkspace() {
 		setCroppedAreaPixels,
 	} = useEditorStore();
 
-	const onCropComplete = useCallback(
-		(_area: Area, pixels: Area) => setCroppedAreaPixels(pixels),
-		[setCroppedAreaPixels],
-	);
+	const imgRef = useRef<HTMLImageElement>(null);
 
-	// Wheel event for zoom and pan (Unified)
-	const handleWheel = useCallback(
-		(e: React.WheelEvent) => {
-			// Zoom: Alt (Photoshop default) OR Ctrl/Meta (Trackpad pinch)
-			if (e.altKey || e.ctrlKey || e.metaKey) {
-				const zoomSpeed = 0.005;
-				const delta = -e.deltaY;
-				setZoom((prev: number) => {
-					const next = prev + delta * zoomSpeed;
-					return Math.max(1, Math.min(next, 3)); // Match slider range
-				});
-				return;
-			}
+	// Handle aspect ratio changes
+	useEffect(() => {
+		if (imgRef.current && aspect) {
+			const { width, height } = imgRef.current;
+			const newCrop = centerCrop(
+				makeAspectCrop(
+					{
+						unit: "%",
+						width: 90,
+					},
+					aspect,
+					width,
+					height,
+				),
+				width,
+				height,
+			);
+			setCrop(newCrop);
+		}
+	}, [aspect, setCrop]);
 
-			// Panning: Mouse wheel or trackpad scroll
-			const panSpeed = 0.5;
-			setCrop((prev: Point) => ({
-				x: prev.x - e.deltaX * panSpeed,
-				y: prev.y - e.deltaY * panSpeed,
-			}));
-		},
-		[setZoom, setCrop],
-	);
+	const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+		const { width, height } = e.currentTarget;
+		setImageAspect(width / height);
+
+		// Initialize center crop if no crop exists or it's default
+		if (crop.width === 0 || crop.width === 100) {
+			const initialCrop = centerCrop(
+				makeAspectCrop(
+					{
+						unit: "%",
+						width: 90,
+					},
+					aspect || width / height,
+					width,
+					height,
+				),
+				width,
+				height,
+			);
+			setCrop(initialCrop);
+		}
+	};
+
+	const onCropChange = (c: Crop) => {
+		setCrop(c);
+	};
+
+	const onCropComplete = (c: PixelCrop) => {
+		if (imgRef.current) {
+			const { naturalWidth, naturalHeight, width, height } = imgRef.current;
+			const scaleX = naturalWidth / width;
+			const scaleY = naturalHeight / height;
+
+			setCroppedAreaPixels({
+				unit: "px",
+				x: c.x * scaleX,
+				y: c.y * scaleY,
+				width: c.width * scaleX,
+				height: c.height * scaleY,
+			});
+		}
+	};
 
 	return (
-		<div className="w-full h-full relative" onWheel={handleWheel}>
-			<Cropper
-				image={processedImageSource}
-				crop={crop}
-				zoom={zoom}
-				aspect={aspect || undefined}
-				rotation={rotation}
-				onCropChange={setCrop}
-				onZoomChange={setZoom}
-				onMediaLoaded={(mediaSize) => {
-					setImageAspect(mediaSize.naturalWidth / mediaSize.naturalHeight);
-				}}
-				objectFit="contain"
-				onCropComplete={onCropComplete}
-				zoomWithScroll={false} // Disable default to use our Alt+Wheel
+		<div className="w-full h-full relative flex items-center justify-center bg-muted p-8 overflow-auto">
+			<div
+				className={`relative shadow-2xl transition-transform duration-300 ${bgColor === "transparent" ? "bg-checkered" : ""}`}
 				style={{
-					containerStyle: {
-						backgroundColor: bgColor === "transparent" ? undefined : bgColor,
-					},
+					backgroundColor: bgColor === "transparent" ? undefined : bgColor,
+					transform: `rotate(${rotation}deg)`,
 				}}
-				classes={{
-					containerClassName: bgColor === "transparent" ? "bg-checkered" : "",
-				}}
-			/>
+			>
+				<ReactCrop
+					crop={crop}
+					onChange={onCropChange}
+					onComplete={onCropComplete}
+					aspect={aspect}
+					className="max-w-full max-h-full"
+				>
+					<img
+						ref={imgRef}
+						src={processedImageSource}
+						alt="Crop workspace"
+						onLoad={onImageLoad}
+						style={{
+							maxHeight: "75vh",
+							width: "auto",
+							display: "block",
+						}}
+						draggable={false}
+					/>
+				</ReactCrop>
+			</div>
 		</div>
 	);
 }

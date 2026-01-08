@@ -2,7 +2,24 @@ import { env, pipeline, RawImage } from "@huggingface/transformers";
 
 // Configuration
 env.allowLocalModels = false;
-env.useBrowserCache = true;
+
+// Safe detection of Cache API / IndexedDB availability
+// Some mobile browsers or private modes disable these, which would cause errors if useBrowserCache is true
+let isCacheAvailable = false;
+try {
+	isCacheAvailable =
+		typeof caches !== "undefined" && typeof indexedDB !== "undefined";
+} catch (_e) {
+	isCacheAvailable = false;
+}
+
+env.useBrowserCache = isCacheAvailable;
+
+if (!isCacheAvailable) {
+	console.warn(
+		"Browser cache/IndexedDB is not available. Models will be downloaded every session.",
+	);
+}
 
 // biome-ignore lint/suspicious/noExplicitAny: Transformers.js segmenter type is complex
 let segmenter: any = null; // Transformers.js segmenter

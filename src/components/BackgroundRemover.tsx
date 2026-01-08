@@ -302,9 +302,10 @@ export default function BackgroundRemover() {
 					{processedImage && (
 						<ImageEditor
 							image={processedImage}
-							sourceImage={processedImage}
-							onSave={(url: string) => {
+							sourceImage={image}
+							onSave={(url: string, sourceUrl?: string) => {
 								setProcessedImage(url);
+								if (sourceUrl) setImage(sourceUrl);
 								setShowEditor(false);
 							}}
 							onCancel={() => setShowEditor(false)}

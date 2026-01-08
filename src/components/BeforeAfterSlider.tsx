@@ -1,5 +1,6 @@
 import { ChevronsLeftRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "./ui/Button";
 
 interface BeforeAfterSliderProps {
 	beforeImage: string;
@@ -63,9 +64,7 @@ export default function BeforeAfterSlider({
 			*/}
 			<div
 				ref={containerRef}
-				className={`relative inline-block overflow-hidden cursor-ew-resize select-none rounded-lg shadow-xl ${showCheckered ? "bg-checkered" : "bg-card"}`}
-				onMouseDown={handleMouseDown}
-				onTouchStart={handleMouseDown}
+				className={`relative inline-block overflow-hidden select-none rounded-lg shadow-xl ${showCheckered ? "bg-checkered" : "bg-card"}`}
 				role="img"
 				aria-label="Interactive before and after comparison slider"
 			>
@@ -93,19 +92,24 @@ export default function BeforeAfterSlider({
 					<img
 						src={beforeImage}
 						alt="Original with background"
-						className="block w-full h-full object-cover pointer-events-none"
+						className="block w-full h-full pointer-events-none"
 						draggable={false}
 					/>
 				</div>
 
 				{/* Slider line and handle */}
 				<div
-					className="absolute top-0 bottom-0 w-0.5 shadow z-10"
+					className="absolute top-0 bottom-0 w-0.5 shadow z-10 pointer-events-none bg-white/20 backdrop-blur-[10px]"
 					style={{ left: `${sliderPosition}%` }}
 				>
-					<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center cursor-ew-resize active:scale-95 transition-transform border border-border">
-						<ChevronsLeftRight className="size-5 text-primary" />
-					</div>
+					<Button
+						variant="ghost"
+						className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:w-10 md:h-10 w-5 h-5 bg-white rounded-full shadow-2xl flex items-center justify-center cursor-ew-resize active:scale-95 transition-transform border border-border pointer-events-auto"
+						onMouseDown={handleMouseDown}
+						onTouchStart={handleMouseDown}
+					>
+						<ChevronsLeftRight className="size-3 md:size-5 text-primary" />
+					</Button>
 				</div>
 			</div>
 		</div>

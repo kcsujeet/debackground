@@ -9,7 +9,7 @@ import { useImageProcessor } from "./editor/useImageProcessor";
 interface ImageEditorProps {
 	image: string;
 	sourceImage: string | null;
-	onSave: (editedImageUrl: string) => void;
+	onSave: (editedImageUrl: string, sourceImageUrl?: string) => void;
 	onCancel: () => void;
 }
 
@@ -23,7 +23,10 @@ export default function ImageEditor({
 	const {
 		initializeEditor,
 		processedImageSource,
+		sourceImage: originalImage,
 		rotation,
+		flipX,
+		flipY,
 		bgColor,
 		croppedAreaPixels,
 		isCleanupMode,
@@ -66,10 +69,14 @@ export default function ImageEditor({
 	// Use image processor hook (handles all processing via store)
 	const { createImage } = useImageProcessor();
 
-	const getCroppedImg = async () => {
+	const processAndCrop = async (
+		src: string,
+		isOriginal = false,
+	): Promise<string | undefined> => {
 		if (!croppedAreaPixels) return;
+
 		try {
-			const img = await createImage(processedImageSource);
+			const img = await createImage(src);
 			const canvas = document.createElement("canvas");
 			const ctx = canvas.getContext("2d");
 			if (!ctx) return;
@@ -77,7 +84,8 @@ export default function ImageEditor({
 			canvas.width = croppedAreaPixels.width;
 			canvas.height = croppedAreaPixels.height;
 
-			if (bgColor !== "transparent") {
+			// Background only for processed image
+			if (!isOriginal && bgColor !== "transparent") {
 				ctx.fillStyle = bgColor;
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
 			}
@@ -90,6 +98,14 @@ export default function ImageEditor({
 			if (!safeCtx) return;
 
 			safeCtx.translate(maxSize, maxSize);
+
+			// Apply transformations
+			// Note: processedImageSource already has flips, but sourceImage doesn't.
+			// However, rotation is applied here for BOTH.
+			if (isOriginal) {
+				safeCtx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+			}
+
 			safeCtx.rotate((rotation * Math.PI) / 180);
 			safeCtx.drawImage(img, -img.width / 2, -img.height / 2);
 
@@ -111,13 +127,21 @@ export default function ImageEditor({
 				}, "image/png"),
 			);
 		} catch (e) {
-			console.error(e);
+			console.error("Crop error:", e);
 		}
 	};
 
 	const handleSave = async () => {
-		const url = await getCroppedImg();
-		if (url) onSave(url);
+		const [resultUrl, sourceUrl] = await Promise.all([
+			processAndCrop(processedImageSource),
+			originalImage
+				? processAndCrop(originalImage, true)
+				: Promise.resolve(undefined),
+		]);
+
+		if (resultUrl) {
+			onSave(resultUrl, sourceUrl);
+		}
 	};
 
 	return (

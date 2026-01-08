@@ -1,4 +1,4 @@
-import type { Area, Point } from "react-easy-crop";
+import type { Crop, PixelCrop } from "react-image-crop";
 import { create } from "zustand";
 
 interface EditorState {
@@ -8,7 +8,7 @@ interface EditorState {
 	processedImageSource: string;
 
 	// Crop/Transform
-	crop: Point;
+	crop: Crop;
 	zoom: number;
 	aspect: number | undefined;
 	imageAspect: number | undefined;
@@ -16,7 +16,7 @@ interface EditorState {
 	flipX: boolean;
 	flipY: boolean;
 	bgColor: string;
-	croppedAreaPixels: Area | null;
+	croppedAreaPixels: PixelCrop | null;
 
 	// Cleanup/Refine Mode
 	isCleanupMode: boolean;
@@ -41,7 +41,7 @@ interface EditorActions {
 	incrementMaskCounter: () => void;
 
 	// Crop/Transform actions
-	setCrop: (crop: Point | ((p: Point) => Point)) => void;
+	setCrop: (crop: Crop | ((c: Crop) => Crop)) => void;
 	setZoom: (zoom: number | ((z: number) => number)) => void;
 
 	setAspect: (aspect: number | undefined) => void;
@@ -50,7 +50,7 @@ interface EditorActions {
 	setFlipX: (flip: boolean) => void;
 	setFlipY: (flip: boolean) => void;
 	setBgColor: (color: string) => void;
-	setCroppedAreaPixels: (area: Area | null) => void;
+	setCroppedAreaPixels: (area: PixelCrop | null) => void;
 
 	// Cleanup mode actions
 	setIsCleanupMode: (mode: boolean) => void;
@@ -76,7 +76,7 @@ const initialState: EditorState = {
 	image: "",
 	sourceImage: null,
 	processedImageSource: "",
-	crop: { x: 0, y: 0 },
+	crop: { unit: "%", x: 10, y: 10, width: 80, height: 80 },
 	zoom: 1,
 	aspect: undefined,
 	imageAspect: undefined,
@@ -129,7 +129,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 				) / 100,
 		})),
 
-	setAspect: (aspect) => set({ aspect }),
+	setAspect: (aspect) =>
+		set(() => {
+			// When aspect changes, we should probably reset/adjust the crop
+			// For simplicity, we'll let the workspace handle the actual visual update
+			// but we store the new aspect here.
+			return { aspect };
+		}),
 	setImageAspect: (aspect: number) => {
 		set({ imageAspect: aspect });
 	},
