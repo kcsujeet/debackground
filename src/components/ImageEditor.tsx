@@ -73,16 +73,22 @@ export default function ImageEditor({
 		src: string,
 		isOriginal = false,
 	): Promise<string | undefined> => {
-		if (!croppedAreaPixels) return;
-
 		try {
 			const img = await createImage(src);
 			const canvas = document.createElement("canvas");
 			const ctx = canvas.getContext("2d");
 			if (!ctx) return;
 
-			canvas.width = croppedAreaPixels.width;
-			canvas.height = croppedAreaPixels.height;
+			// Fallback to full image if no crop area is defined
+			const area = croppedAreaPixels || {
+				x: 0,
+				y: 0,
+				width: img.width,
+				height: img.height,
+			};
+
+			canvas.width = area.width;
+			canvas.height = area.height;
 
 			// Background only for processed image
 			if (!isOriginal && bgColor !== "transparent") {
@@ -111,14 +117,14 @@ export default function ImageEditor({
 
 			ctx.drawImage(
 				safeCanvas,
-				croppedAreaPixels.x + maxSize - img.width / 2,
-				croppedAreaPixels.y + maxSize - img.height / 2,
-				croppedAreaPixels.width,
-				croppedAreaPixels.height,
+				area.x + maxSize - img.width / 2,
+				area.y + maxSize - img.height / 2,
+				area.width,
+				area.height,
 				0,
 				0,
-				croppedAreaPixels.width,
-				croppedAreaPixels.height,
+				area.width,
+				area.height,
 			);
 
 			return new Promise<string>((res) =>
