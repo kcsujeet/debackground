@@ -6,9 +6,9 @@
     </mask>
   </defs>
 
-  <!-- Background Layer (Gray Outline) - Slate-400 equivalent -->
+  <!-- Background Layer (Gray Outline) - Represents the original background -->
   <rect x="2" y="12" width="18" height="18" rx="4" stroke="#94a3b8" stroke-width="2.5" mask="url(#gap-mask)"/>
 
-  <!-- Foreground Layer (Indigo Solid) - Indigo-600 equivalent (Matches button visual) -->
+  <!-- Foreground Layer (Indigo Solid) - Represents the isolated subject -->
   <rect x="12" y="2" width="18" height="18" rx="4" fill="#477ed8"/>
 </svg>

@@ -1,9 +1,9 @@
-# Gemini Project Notes
+# Unbgly - Project Notes
 
 This file contains notes and instructions for the Gemini agent working on this project.
 
-## Current State: UI Modernized & Interactive Demo Integrated
-The project has successfully transitioned to a modern, Linear-inspired design. The interactive `BeforeAfterSlider` is integrated both in the hero section and the main background removal tool. Performance and zoom precision issues have been addressed.
+## Current State: Rebranded and Feature Rich
+The project has been rebranded from PureBG to **Unbgly**. It features a modern design, background image removal, custom background replacement, and real-time background filters.
 
 ## Technology Stack
 - **Runtime/Package Manager**: Bun

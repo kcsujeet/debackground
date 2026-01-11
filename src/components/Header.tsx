@@ -7,9 +7,9 @@ export default function Header() {
 						href="/"
 						className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity"
 					>
-						<img src="/logo.svg" alt="PureBG Logo" className="w-8 h-8" />
+						<img src="/logo.svg" alt="Unbgly Logo" className="w-8 h-8" />
 						<span className="text-foreground font-semibold tracking-tight">
-							PureBG
+							Unbgly
 						</span>
 					</a>
 
