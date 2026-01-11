@@ -1,4 +1,4 @@
-import { Dog, ImageIcon, ShoppingBag, User } from "lucide-react";
+import { User } from "lucide-react";
 import { useState } from "react";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 
@@ -10,27 +10,27 @@ const EXAMPLES = [
 		before: "/images/hero-person-before.png",
 		after: "/images/hero-person-after.png",
 	},
-	{
-		id: "animals",
-		label: "Animals",
-		icon: Dog,
-		before: "/images/hero-animal-before.png",
-		after: "/images/hero-animal-after.png",
-	},
-	{
-		id: "products",
-		label: "Products",
-		icon: ShoppingBag,
-		before: "/images/hero-product-before.png",
-		after: "/images/hero-product-after.png",
-	},
-	{
-		id: "demo",
-		label: "Graphics",
-		icon: ImageIcon,
-		before: "/images/demo-before.png",
-		after: "/images/demo-after.png",
-	},
+	// {
+	// 	id: "animals",
+	// 	label: "Animals",
+	// 	icon: Dog,
+	// 	before: "/images/hero-animal-before.png",
+	// 	after: "/images/hero-animal-after.png",
+	// },
+	// {
+	// 	id: "products",
+	// 	label: "Products",
+	// 	icon: ShoppingBag,
+	// 	before: "/images/hero-product-before.png",
+	// 	after: "/images/hero-product-after.png",
+	// },
+	// {
+	// 	id: "demo",
+	// 	label: "Graphics",
+	// 	icon: ImageIcon,
+	// 	before: "/images/demo-before.png",
+	// 	after: "/images/demo-after.png",
+	// },
 ];
 
 export default function HeroExamples() {
@@ -52,7 +52,7 @@ export default function HeroExamples() {
 			</div>
 
 			{/* Category Selector */}
-			<div className="flex items-center gap-2 md:gap-4 p-1.5 bg-card/50 backdrop-blur-md rounded-full w-fit max-w-full mx-auto overflow-x-auto scrollbar-none flex-nowrap px-4 md:px-1.5">
+			{/* <div className="flex items-center gap-2 md:gap-4 p-1.5 bg-card/50 backdrop-blur-md rounded-full w-fit max-w-full mx-auto overflow-x-auto scrollbar-none flex-nowrap px-4 md:px-1.5">
 				{EXAMPLES.map((example) => {
 					const Icon = example.icon;
 					const isActive = activeId === example.id;
@@ -75,7 +75,7 @@ export default function HeroExamples() {
 						</button>
 					);
 				})}
-			</div>
+			</div> */}
 
 			{/* Slider Container */}
 			<div className="relative group p-2 rounded-3xl bg-card shadow-2xl overflow-hidden transition-all duration-500">
