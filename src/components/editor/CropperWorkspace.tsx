@@ -129,6 +129,7 @@ export default function CropperWorkspace() {
 					onComplete={onCropComplete}
 					aspect={aspect}
 					className="max-w-full max-h-full relative z-10"
+					ruleOfThirds
 				>
 					<img
 						ref={imgRef}
