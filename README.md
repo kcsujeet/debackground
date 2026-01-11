@@ -1,43 +1,59 @@
-# Astro Starter Kit: Minimal
+# Debackground 🚀
 
-```sh
-npm create astro@latest -- --template minimal
-```
+**Debackground** is a professional-grade, 100% private, and free AI background remover that runs entirely in your browser. No signups, no fees, and no data ever leaves your device.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+![Debackground Hero](public/favicon.svg)
 
-## 🚀 Project Structure
+## ✨ Features
 
-Inside of your Astro project, you'll see the following folders and files:
+- **🛡️ 100% Private**: All AI processing happens locally in your browser using Transformers.js. Your photos are never uploaded to any server.
+- **⚡ Browser-Native Performance**: Built with Astro and high-performance WASM inference for instant results.
+- **💎 Studio-Quality**: Advanced AI models handle complex edges like hair and transparent objects with precision.
+- **🔓 Unlimited & Free**: No resolution limits, no daily quotas, and no hidden fees.
+- **🎨 Custom Backgrounds**: Replace removed backgrounds with solid colors or your own images.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## 🛠️ Tech Stack
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+- **Runtime**: [Bun](https://bun.sh/)
+- **Framework**: [Astro](https://astro.build/) + [React](https://reactjs.org/)
+- **AI Engine**: [Transformers.js](https://huggingface.co/docs/transformers.js/) (MIT)
+- **Model**: `onnx-community/BiRefNet_lite-ONNX`
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 🚀 Getting Started
 
-Any static assets, like images, can be placed in the `public/` directory.
+### Prerequisites
 
-## 🧞 Commands
+Ensure you have [Bun](https://bun.sh/) installed.
 
-All commands are run from the root of the project, from a terminal:
+### Installation
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/kcsujeet/debackground.git
+   cd debackground
+   ```
 
-## 👀 Want to learn more?
+2. Install dependencies:
+   ```bash
+   bun install
+   ```
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+3. Start the development server:
+   ```bash
+   bun dev
+   ```
+
+4. Open [http://localhost:4321](http://localhost:4321) in your browser.
+
+## 📖 Commands
+
+| Command | Action |
+| :--- | :--- |
+| `bun dev` | Starts local dev server at `localhost:4321` |
+| `bun run build` | Build your production site to `./dist/` |
+| `bun run preview` | Preview your build locally |
+| `bun run check` | Run Biome checks and formatting |
+
+
