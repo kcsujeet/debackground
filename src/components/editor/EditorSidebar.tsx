@@ -1,7 +1,9 @@
 import {
+	Contrast,
 	Eraser,
 	FlipHorizontal,
 	FlipVertical,
+	Image,
 	Maximize,
 	Monitor,
 	Move,
@@ -10,6 +12,7 @@ import {
 	RotateCw,
 	Smartphone,
 	Square,
+	Sun,
 	Undo2,
 	X,
 	ZoomIn,
@@ -51,6 +54,11 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 		clearMask,
 		bgColor,
 		setBgColor,
+		bgImage,
+		setBgImage,
+		filters,
+		setFilter,
+		resetFilters,
 		setRotation,
 		flipX,
 		setFlipX,
@@ -62,6 +70,14 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 		setAspect,
 		imageAspect,
 	} = useEditorStore();
+
+	const handleBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			const url = URL.createObjectURL(file);
+			setBgImage(url);
+		}
+	};
 
 	return (
 		<div
@@ -224,6 +240,124 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 										}
 										onChange={(e) => setBgColor(e.target.value)}
 										className="absolute inset-0 opacity-0 cursor-pointer"
+									/>
+								</div>
+								{/* Upload Background Image */}
+								<div className="relative">
+									<button
+										type="button"
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center ${bgImage ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
+										onClick={() =>
+											document.getElementById("bg-image-upload")?.click()
+										}
+										title="Upload background image"
+										style={
+											bgImage
+												? {
+														backgroundImage: `url(${bgImage})`,
+														backgroundSize: "cover",
+														backgroundPosition: "center",
+													}
+												: {}
+										}
+									>
+										{!bgImage && (
+											<Image className="w-4 h-4 text-muted-foreground" />
+										)}
+									</button>
+									<input
+										id="bg-image-upload"
+										type="file"
+										accept="image/*"
+										onChange={handleBgImageUpload}
+										className="hidden"
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Background Filters Section */}
+						<div>
+							<div className="flex items-center justify-between mb-4">
+								<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+									<Contrast className="w-3 h-3" /> Background Filters
+								</h4>
+								<Button
+									variant="ghost"
+									size="sm"
+									className="h-6 px-2 text-xs"
+									onClick={resetFilters}
+								>
+									<Undo2 className="w-3 h-3 mr-1" /> Reset
+								</Button>
+							</div>
+							<div className="space-y-4">
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-xs text-muted-foreground flex items-center gap-1.5">
+											<Sun className="w-3 h-3" /> Brightness
+										</span>
+										<span className="text-xs font-medium text-foreground">
+											{filters.brightness}%
+										</span>
+									</div>
+									<Slider
+										value={[filters.brightness]}
+										min={0}
+										max={200}
+										step={1}
+										onValueChange={(v) => setFilter("brightness", v[0])}
+									/>
+								</div>
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-xs text-muted-foreground flex items-center gap-1.5">
+											<Contrast className="w-3 h-3" /> Contrast
+										</span>
+										<span className="text-xs font-medium text-foreground">
+											{filters.contrast}%
+										</span>
+									</div>
+									<Slider
+										value={[filters.contrast]}
+										min={0}
+										max={200}
+										step={1}
+										onValueChange={(v) => setFilter("contrast", v[0])}
+									/>
+								</div>
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-xs text-muted-foreground flex items-center gap-1.5">
+											<Palette className="w-3 h-3" /> Saturation
+										</span>
+										<span className="text-xs font-medium text-foreground">
+											{filters.saturation}%
+										</span>
+									</div>
+									<Slider
+										value={[filters.saturation]}
+										min={0}
+										max={200}
+										step={1}
+										onValueChange={(v) => setFilter("saturation", v[0])}
+									/>
+								</div>
+								<div>
+									<div className="flex items-center justify-between mb-2">
+										<span className="text-xs text-muted-foreground flex items-center gap-1.5">
+											<Move className="w-3 h-3" /> Blur
+										</span>
+										<span className="text-xs font-medium text-foreground">
+											{filters.blur}px
+										</span>
+									</div>
+									<Slider
+										value={[filters.blur]}
+										min={0}
+										max={20}
+										step={0.5}
+										onValueChange={(v) => setFilter("blur", v[0])}
 									/>
 								</div>
 							</div>

@@ -17,10 +17,15 @@ export default function CropperWorkspace() {
 		setImageAspect,
 		rotation,
 		bgColor,
+		bgImage,
+		filters,
 		setCroppedAreaPixels,
 	} = useEditorStore();
 
 	const imgRef = useRef<HTMLImageElement>(null);
+
+	// Build CSS filter string from filter values
+	const filterStyle = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) blur(${filters.blur}px)`;
 
 	// Handle aspect ratio changes
 	useEffect(() => {
@@ -89,18 +94,41 @@ export default function CropperWorkspace() {
 	return (
 		<div className="w-full h-full relative flex items-center justify-center bg-muted p-4 sm:p-8 overflow-hidden select-none">
 			<div
-				className={`relative shadow-2xl transition-transform duration-300 ${bgColor === "transparent" ? "bg-checkered" : ""}`}
+				className="relative shadow-2xl transition-transform duration-300"
 				style={{
-					backgroundColor: bgColor === "transparent" ? undefined : bgColor,
 					transform: `rotate(${rotation}deg)`,
 				}}
 			>
+				{/* Background Layer - receives filters */}
+				{bgImage ? (
+					<div
+						className="absolute inset-0 z-0"
+						style={{
+							backgroundImage: `url(${bgImage})`,
+							backgroundSize: "cover",
+							backgroundPosition: "center",
+							filter: filterStyle,
+						}}
+					/>
+				) : bgColor !== "transparent" ? (
+					<div
+						className="absolute inset-0 z-0"
+						style={{
+							backgroundColor: bgColor,
+							filter: filterStyle,
+						}}
+					/>
+				) : (
+					<div className="absolute inset-0 z-0 bg-checkered" />
+				)}
+
+				{/* Subject Layer - no filters */}
 				<ReactCrop
 					crop={crop}
 					onChange={onCropChange}
 					onComplete={onCropComplete}
 					aspect={aspect}
-					className="max-w-full max-h-full"
+					className="max-w-full max-h-full relative z-10"
 				>
 					<img
 						ref={imgRef}

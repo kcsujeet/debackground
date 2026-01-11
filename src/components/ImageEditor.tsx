@@ -29,6 +29,8 @@ export default function ImageEditor({
 		flipX,
 		flipY,
 		bgColor,
+		bgImage,
+		filters,
 		croppedAreaPixels,
 		isCleanupMode,
 		setIsSpacePressed,
@@ -91,10 +93,21 @@ export default function ImageEditor({
 			canvas.width = area.width;
 			canvas.height = area.height;
 
-			// Background only for processed image
-			if (!isOriginal && bgColor !== "transparent") {
-				ctx.fillStyle = bgColor;
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
+			// Background: either image or color - both receive filters
+			if (!isOriginal) {
+				// Apply filters to background
+				ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) blur(${filters.blur}px)`;
+
+				if (bgImage) {
+					// Draw background image with filters
+					const bgImg = await createImage(bgImage);
+					ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+				} else if (bgColor !== "transparent") {
+					ctx.fillStyle = bgColor;
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+				}
+
+				ctx.filter = "none"; // Reset for subject
 			}
 
 			const maxSize = Math.max(img.width, img.height);
@@ -116,6 +129,7 @@ export default function ImageEditor({
 			safeCtx.rotate((rotation * Math.PI) / 180);
 			safeCtx.drawImage(img, -img.width / 2, -img.height / 2);
 
+			// Draw subject without filters (filters are on background)
 			ctx.drawImage(
 				safeCanvas,
 				area.x + maxSize - img.width / 2,

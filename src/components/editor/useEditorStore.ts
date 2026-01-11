@@ -16,7 +16,16 @@ interface EditorState {
 	flipX: boolean;
 	flipY: boolean;
 	bgColor: string;
+	bgImage: string | null;
 	croppedAreaPixels: PixelCrop | null;
+
+	// Filters
+	filters: {
+		brightness: number;
+		contrast: number;
+		saturation: number;
+		blur: number;
+	};
 
 	// Cleanup/Refine Mode
 	isCleanupMode: boolean;
@@ -50,7 +59,15 @@ interface EditorActions {
 	setFlipX: (flip: boolean) => void;
 	setFlipY: (flip: boolean) => void;
 	setBgColor: (color: string) => void;
+	setBgImage: (url: string | null) => void;
 	setCroppedAreaPixels: (area: PixelCrop | null) => void;
+
+	// Filter actions
+	setFilter: (
+		key: "brightness" | "contrast" | "saturation" | "blur",
+		value: number,
+	) => void;
+	resetFilters: () => void;
 
 	// Cleanup mode actions
 	setIsCleanupMode: (mode: boolean) => void;
@@ -84,7 +101,14 @@ const initialState: EditorState = {
 	flipX: false,
 	flipY: false,
 	bgColor: "transparent",
+	bgImage: null,
 	croppedAreaPixels: null,
+	filters: {
+		brightness: 100,
+		contrast: 100,
+		saturation: 100,
+		blur: 0,
+	},
 	isCleanupMode: false,
 	brushMode: "eraser",
 	brushSize: 30,
@@ -146,8 +170,24 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 		})),
 	setFlipX: (flip) => set({ flipX: flip }),
 	setFlipY: (flip) => set({ flipY: flip }),
-	setBgColor: (color) => set({ bgColor: color }),
+	setBgColor: (color) => set({ bgColor: color, bgImage: null }), // Clear bgImage when color is set
+	setBgImage: (url) => set({ bgImage: url, bgColor: "transparent" }), // Clear bgColor when image is set
 	setCroppedAreaPixels: (area) => set({ croppedAreaPixels: area }),
+
+	// Filters
+	setFilter: (key, value) =>
+		set((state) => ({
+			filters: { ...state.filters, [key]: value },
+		})),
+	resetFilters: () =>
+		set({
+			filters: {
+				brightness: 100,
+				contrast: 100,
+				saturation: 100,
+				blur: 0,
+			},
+		}),
 
 	// Cleanup mode
 	setIsCleanupMode: (mode) => set({ isCleanupMode: mode }),
