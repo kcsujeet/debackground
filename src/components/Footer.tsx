@@ -10,12 +10,12 @@ export default function Footer() {
 					<div className="col-span-1 md:col-span-2 space-y-6">
 						<div className="flex items-center gap-2 text-sm font-medium">
 							<img
-								src="/unbgly-background-remover.svg"
-								alt="Unbgly - Unlimited Background Remover"
+								src="/favicon.svg"
+								alt="Debackground - Unlimited Background Remover"
 								className="w-8 h-8"
 							/>
 							<span className="text-foreground font-bold text-lg font-heading">
-								Unbgly
+								Debackground
 							</span>
 						</div>
 						<p className="text-muted-foreground text-sm max-w-xs leading-relaxed">
@@ -49,7 +49,7 @@ export default function Footer() {
 
 				<div className="flex flex-col md:flex-row items-center justify-center gap-6 pt-8 border-t border-border">
 					<div className="flex items-center gap-2 text-xs text-muted-foreground">
-						<span>© {currentYear} Unbgly. All rights reserved.</span>
+						<span>© {currentYear} Debackground. All rights reserved.</span>
 					</div>
 				</div>
 			</div>

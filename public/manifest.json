@@ -1,6 +1,6 @@
 {
-  "name": "Unbgly - AI Background Remover",
-  "short_name": "Unbgly",
+  "name": "Debackground - AI Background Remover",
+  "short_name": "Debackground",
   "description": "Free unlimited AI background remover. 100% private, runs locally.",
   "start_url": "/",
   "display": "standalone",
@@ -8,7 +8,7 @@
   "theme_color": "#883ae6",
   "icons": [
     {
-      "src": "/unbgly-background-remover.svg",
+      "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

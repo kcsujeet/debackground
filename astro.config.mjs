@@ -11,7 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://unbgly.com",
+	site: "https://debackground.com",
 	integrations: [react(), sitemap()],
 	server: {
 		host: true,

@@ -10,18 +10,18 @@ interface Props {
 
 const { 
 	title, 
-	description = "Unbgly - Free unlimited AI background remover. Remove backgrounds in HD quality instantly, 100% private, runs locally in your browser. No signups, no fees.",
-	image = "/unbgly-background-remover.svg",
+	description = "Debackground - Free unlimited AI background remover. Remove backgrounds in HD quality instantly, 100% private, runs locally in your browser. No signups, no fees.",
+	image = "/favicon.svg",
 	canonical = Astro.url.href
 } = Astro.props;
 
-const siteName = "Unbgly";
+const siteName = "Debackground";
 const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "SoftwareApplication",
-	"name": "Unbgly",
+	"name": "Debackground",
 	"operatingSystem": "All",
 	"applicationCategory": "MultimediaApplication",
 	"description": description,
@@ -62,7 +62,7 @@ const jsonLd = {
 		<meta property="twitter:description" content={description} />
 		<meta property="twitter:image" content={new URL(image, Astro.url)} />
 
-		<link rel="icon" type="image/svg+xml" href="/unbgly-background-remover.svg" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		
 		<link rel="preconnect" href="https://fonts.googleapis.com">

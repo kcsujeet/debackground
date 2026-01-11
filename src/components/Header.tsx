@@ -8,12 +8,12 @@ export default function Header() {
 						className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity"
 					>
 						<img
-							src="/unbgly-background-remover.svg"
-							alt="Unbgly - AI Background Remover"
+							src="/favicon.svg"
+							alt="Debackground - AI Background Remover"
 							className="w-8 h-8"
 						/>
 						<span className="text-foreground font-bold tracking-tight text-lg font-heading">
-							Unbgly
+							Debackground
 						</span>
 					</a>
 
