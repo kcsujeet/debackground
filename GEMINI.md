@@ -5,6 +5,8 @@ This file contains notes and instructions for the Gemini agent working on this p
 ## Gemini Rules
 - Never commit changes without asking for explicit permission first. This is a non-negotiable rule.
 - I must always write specs (tests) for any code I write in this project.
+- Always let me do the testing. Don't open browser yourself.
+- Always generate images in 16:9 aspect ratio for hero and demo assets.
 
 ## Current State: Rebranded and Feature Rich
 The project has been rebranded from PureBG to **Unbgly**. It features a modern design, background image removal, custom background replacement, and real-time background filters.
