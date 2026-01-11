@@ -114,10 +114,10 @@ export default function BackgroundRemover() {
 				<div className="flex flex-col items-center">
 					<div
 						{...getRootProps()}
-						className={`relative group w-full max-w-2xl min-h-[300px] md:aspect-video flex flex-col items-center justify-center border-2 border-dashed rounded-3xl md:rounded-4xl cursor-pointer transition-all duration-300 backdrop-blur-xl shadow-2xl overflow-hidden ${
+						className={`relative group w-full max-w-2xl min-h-[300px] md:aspect-video flex flex-col items-center justify-center border-2 border-dashed rounded-4xl cursor-pointer transition-all duration-300 glass-premium overflow-hidden ${
 							isDragActive
 								? "border-primary bg-primary/10 ring-4 ring-primary/20"
-								: "border-white/20 bg-surface/30 hover:border-primary/60 hover:bg-primary/5"
+								: "hover:border-primary/60 hover:bg-primary/5"
 						}`}
 					>
 						<input {...getInputProps()} />
@@ -139,25 +139,14 @@ export default function BackgroundRemover() {
 									: "Drop your image here"}
 							</h3>
 							<p className="text-muted-foreground max-w-[240px] md:max-w-xs leading-relaxed text-xs md:text-sm">
-								Transparent background in seconds. Processing is 100% local and
-								private.
+								Transparent background in seconds.
 							</p>
-						</div>
-					</div>
-
-					<div className="mt-8 md:mt-12 flex flex-col sm:flex-row items-center gap-4 sm:gap-8 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-						<span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground">
-							Powered by
-						</span>
-						<div className="flex items-center gap-2 font-black text-lg md:text-xl text-foreground">
-							<Zap className="w-5 h-5 md:w-6 md:h-6 fill-primary text-primary" />
-							<span>Transformers.js</span>
 						</div>
 					</div>
 				</div>
 			) : (
 				<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-					<Card className="rounded-xl overflow-hidden gap-0 pb-0">
+					<Card className="rounded-3xl overflow-hidden gap-0 pb-0 glass-premium">
 						<CardHeader className="border-b">
 							<CardTitle>
 								{!isProcessing && processedImage && (
@@ -296,7 +285,7 @@ export default function BackgroundRemover() {
 				onOpenChange={(open) => !open && setShowEditor(false)}
 			>
 				<DialogContent
-					className="min-w-[95vw] h-[90vh] p-0 rounded"
+					className="min-w-[95vw] h-[90vh] p-0 rounded-3xl border-none"
 					showCloseButton={false}
 				>
 					{processedImage && (

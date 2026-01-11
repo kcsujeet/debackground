@@ -3,23 +3,74 @@ import "../styles/global.css";
 
 interface Props {
 	title: string;
+	description?: string;
+	image?: string;
+	canonical?: string;
 }
 
-const { title } = Astro.props;
+const { 
+	title, 
+	description = "Unbgly - Free unlimited AI background remover. Remove backgrounds in HD quality instantly, 100% private, runs locally in your browser. No signups, no fees.",
+	image = "/unbgly-background-remover.svg",
+	canonical = Astro.url.href
+} = Astro.props;
+
+const siteName = "Unbgly";
+const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
+
+const jsonLd = {
+	"@context": "https://schema.org",
+	"@type": "SoftwareApplication",
+	"name": "Unbgly",
+	"operatingSystem": "All",
+	"applicationCategory": "MultimediaApplication",
+	"description": description,
+	"browserRequirements": "requires HTML5 support",
+	"offers": {
+		"@type": "Offer",
+		"price": "0",
+		"priceCurrency": "USD"
+	}
+};
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="description" content="Unbgly - Free AI background remover. Remove backgrounds instantly, 100% private, runs locally in your browser." />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/logo.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{fullTitle}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical} />
+		
+		<!-- Theme Color -->
+		<meta name="theme-color" content="#883ae6" />
+		<link rel="manifest" href="/manifest.json" />
+
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:title" content={fullTitle} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={new URL(image, Astro.url)} />
+		<meta property="og:site_name" content={siteName} />
+
+		<!-- Twitter -->
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:url" content={canonical} />
+		<meta property="twitter:title" content={fullTitle} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content={new URL(image, Astro.url)} />
+
+		<link rel="icon" type="image/svg+xml" href="/unbgly-background-remover.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
+		
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Outfit:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+		<!-- JSON-LD -->
+		<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 	</head>
 	<body>
 		<slot />

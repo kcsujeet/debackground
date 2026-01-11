@@ -1,14 +1,18 @@
 export default function Header() {
 	return (
-		<nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95">
-			<div className="max-w-[1400px] mx-auto px-6 lg:px-8">
+		<nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/60 backdrop-blur-xl">
+			<div className="max-w-[1400px] mx-auto px-6 md:px-8">
 				<div className="flex items-center justify-between h-16">
 					<a
 						href="/"
 						className="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity"
 					>
-						<img src="/logo.svg" alt="Unbgly Logo" className="w-8 h-8" />
-						<span className="text-foreground font-semibold tracking-tight">
+						<img
+							src="/unbgly-background-remover.svg"
+							alt="Unbgly - AI Background Remover"
+							className="w-8 h-8"
+						/>
+						<span className="text-foreground font-bold tracking-tight text-lg font-heading">
 							Unbgly
 						</span>
 					</a>

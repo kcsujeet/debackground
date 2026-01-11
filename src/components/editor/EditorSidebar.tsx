@@ -82,7 +82,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 	return (
 		<div
 			className={`
-			absolute md:relative inset-y-0 right-0 w-[280px] sm:w-80 border-l border-border bg-card flex flex-col shrink-0 z-50 transition-transform duration-300 ease-in-out
+			absolute md:relative inset-y-0 right-0 w-[280px] sm:w-80 border-l border-border bg-card/60 backdrop-blur-2xl flex flex-col shrink-0 z-50 transition-transform duration-300 ease-in-out
 			${isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}
 			${!isOpen ? "pointer-events-none md:pointer-events-auto" : "pointer-events-auto"}
 		`}
@@ -108,7 +108,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 							<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4">
 								Tool Type
 							</h4>
-							<div className="grid grid-cols-2 gap-2 bg-muted p-1.5 rounded-[1.25rem] border border-border">
+							<div className="grid grid-cols-2 gap-2 bg-muted/50 p-1.5 rounded-2xl border border-border/50">
 								<button
 									type="button"
 									onClick={() => setBrushMode("eraser")}
@@ -208,7 +208,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 										type="button"
 										key={color}
 										onClick={() => setBgColor(color)}
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 ${bgColor === color ? "border-primary ring-4 ring-primary/10" : "border-transparent shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 ${bgColor === color ? "border-primary ring-4 ring-primary/10" : "border-border/50 shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
 										style={{
 											backgroundColor:
 												color === "transparent" ? undefined : color,

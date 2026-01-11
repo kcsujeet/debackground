@@ -1,0 +1,16 @@
+{
+  "name": "Unbgly - AI Background Remover",
+  "short_name": "Unbgly",
+  "description": "Free unlimited AI background remover. 100% private, runs locally.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#883ae6",
+  "icons": [
+    {
+      "src": "/unbgly-background-remover.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
