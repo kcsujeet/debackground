@@ -1,8 +1,8 @@
-# Debackground 🚀
+# deBackground 🚀
 
-**Debackground** is a professional-grade, 100% private, and free AI background remover that runs entirely in your browser. No signups, no fees, and no data ever leaves your device.
+**deBackground** is a professional-grade, 100% private, and free AI background remover that runs entirely in your browser. No signups, no fees, and no data ever leaves your device.
 
-![Debackground Hero](public/favicon.svg)
+![deBackground Hero](public/favicon.svg)
 
 ## ✨ Features
 

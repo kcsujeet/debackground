@@ -10,18 +10,18 @@ interface Props {
 
 const { 
 	title, 
-	description = "Debackground - Free unlimited AI background remover. Remove backgrounds in HD quality instantly, 100% private, runs locally in your browser. No signups, no fees.",
+	description = "deBackground - Free unlimited AI background remover. Remove backgrounds in HD quality instantly, 100% private, runs locally in your browser. No signups, no fees.",
 	image = "/favicon.svg",
 	canonical = Astro.url.href
 } = Astro.props;
 
-const siteName = "Debackground";
+const siteName = "deBackground";
 const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 
 const jsonLd = {
 	"@context": "https://schema.org",
 	"@type": "SoftwareApplication",
-	"name": "Debackground",
+	"name": "deBackground",
 	"operatingSystem": "All",
 	"applicationCategory": "MultimediaApplication",
 	"description": description,

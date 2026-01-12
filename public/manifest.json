@@ -1,6 +1,6 @@
 {
-  "name": "Debackground - AI Background Remover",
-  "short_name": "Debackground",
+  "name": "deBackground - AI Background Remover",
+  "short_name": "deBackground",
   "description": "Free unlimited AI background remover. 100% private, runs locally.",
   "start_url": "/",
   "display": "standalone",

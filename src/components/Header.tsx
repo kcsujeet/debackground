@@ -9,11 +9,11 @@ export default function Header() {
 					>
 						<img
 							src="/favicon.svg"
-							alt="Debackground - AI Background Remover"
+							alt="deBackground - AI Background Remover"
 							className="w-8 h-8"
 						/>
 						<span className="text-foreground font-bold tracking-tight text-lg font-heading">
-							Debackground
+							deBackground
 						</span>
 					</a>
 

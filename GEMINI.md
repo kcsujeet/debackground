@@ -1,4 +1,4 @@
-# Debackground - Project Notes
+# deBackground - Project Notes
 
 This file contains notes and instructions for the Gemini agent working on this project.
 
@@ -9,7 +9,7 @@ This file contains notes and instructions for the Gemini agent working on this p
 - Always generate images in 16:9 aspect ratio for hero and demo assets.
 
 ## Current State: Rebranded and Feature Rich
-The project has been rebranded from PureBG to **Debackground**. It features a modern design, background image removal, custom background replacement, and real-time background filters.
+The project has been rebranded from PureBG to **deBackground**. It features a modern design, background image removal, custom background replacement, and real-time background filters.
 
 ## Technology Stack
 - **Runtime/Package Manager**: Bun

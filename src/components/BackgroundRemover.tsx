@@ -1,12 +1,4 @@
-import {
-	Download,
-	Loader2,
-	Maximize,
-	Trash2,
-	Upload,
-	X,
-	Zap,
-} from "lucide-react";
+import { Download, Loader2, Maximize, Trash2, Upload, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import BeforeAfterSlider from "./BeforeAfterSlider";

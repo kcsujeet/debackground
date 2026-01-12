@@ -34,7 +34,7 @@ const EXAMPLES = [
 ];
 
 export default function HeroExamples() {
-	const [activeId, setActiveId] = useState(EXAMPLES[0].id);
+	const [activeId, _setActiveId] = useState(EXAMPLES[0].id);
 	const activeExample =
 		EXAMPLES.find((ex) => ex.id === activeId) || EXAMPLES[0];
 
