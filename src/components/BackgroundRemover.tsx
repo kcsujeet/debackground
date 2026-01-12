@@ -1,4 +1,12 @@
-import { Download, Loader2, Maximize, Trash2, Upload, X } from "lucide-react";
+import {
+	Download,
+	Heart,
+	Loader2,
+	Trash2,
+	Upload,
+	Wand2,
+	X,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import BeforeAfterSlider from "./BeforeAfterSlider";
@@ -21,6 +29,8 @@ export default function BackgroundRemover() {
 	const [status, setStatus] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [showEditor, setShowEditor] = useState(false);
+	const [showDownloadDialog, setShowDownloadDialog] = useState(false);
+	const [isExporting, setIsExporting] = useState(false);
 	const workerRef = useRef<Worker | null>(null);
 
 	useEffect(() => {
@@ -92,12 +102,21 @@ export default function BackgroundRemover() {
 		setStatus(null);
 	};
 
-	const download = () => {
+	const download = async () => {
 		if (!processedImage) return;
+
+		setShowDownloadDialog(true);
+		setIsExporting(true);
+
+		// Simulate exporting process
+		await new Promise((resolve) => setTimeout(resolve, 2000));
+
 		const link = document.createElement("a");
 		link.href = processedImage;
 		link.download = "no-bg-image.png";
 		link.click();
+
+		setIsExporting(false);
 	};
 
 	return (
@@ -106,7 +125,7 @@ export default function BackgroundRemover() {
 				<div className="flex flex-col items-center">
 					<div
 						{...getRootProps()}
-						className={`relative group w-full max-w-2xl min-h-[300px] md:aspect-video flex flex-col items-center justify-center border-2 border-dashed rounded-4xl cursor-pointer transition-all duration-300 glass-premium overflow-hidden ${
+						className={`relative group w-full max-w-2xl min-h-[300px] md:aspect-video flex flex-col items-center justify-center border-2 border-dashed rounded-4xl cursor-pointer transition-all duration-300 overflow-hidden ${
 							isDragActive
 								? "border-primary bg-primary/10 ring-4 ring-primary/20"
 								: "hover:border-primary/60 hover:bg-primary/5"
@@ -138,9 +157,9 @@ export default function BackgroundRemover() {
 				</div>
 			) : (
 				<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-					<Card className="rounded-3xl overflow-hidden gap-0 pb-0 glass-premium">
-						<CardHeader className="border-b">
-							<CardTitle>
+					<Card className="rounded-3xl overflow-hidden gap-0 pb-0 shadow-lg border-border/50">
+						<CardHeader className="border-b flex flex-row items-center justify-between py-4 space-y-0">
+							<CardTitle className="p-0">
 								{!isProcessing && processedImage && (
 									<div className="flex items-center gap-4">
 										<Badge
@@ -155,7 +174,7 @@ export default function BackgroundRemover() {
 									</div>
 								)}
 							</CardTitle>
-							<CardAction>
+							<CardAction className="self-center">
 								<div className="flex items-center gap-2">
 									{isProcessing ? (
 										<Badge variant="secondary" className="animate-pulse">
@@ -178,7 +197,7 @@ export default function BackgroundRemover() {
 														size="sm"
 														onClick={() => setShowEditor(true)}
 													>
-														<Maximize className="w-4 h-4" />
+														<Wand2 className="w-4 h-4" />
 														<span className="hidden @[600px]/card-header:inline">
 															Edit & Refine
 														</span>
@@ -277,7 +296,7 @@ export default function BackgroundRemover() {
 				onOpenChange={(open) => !open && setShowEditor(false)}
 			>
 				<DialogContent
-					className="min-w-[95vw] h-[90vh] p-0 rounded-3xl border-none"
+					className="min-w-[95vw] h-[90dvh] p-0 rounded-3xl border-none overflow-hidden"
 					showCloseButton={false}
 				>
 					{processedImage && (
@@ -291,6 +310,68 @@ export default function BackgroundRemover() {
 							}}
 							onCancel={() => setShowEditor(false)}
 						/>
+					)}
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={showDownloadDialog} onOpenChange={setShowDownloadDialog}>
+				<DialogContent
+					className="max-w-md p-8 text-center rounded-4xl border-primary/10"
+					showCloseButton={false}
+				>
+					{isExporting ? (
+						<div className="space-y-6 pt-4">
+							<div className="relative w-fit mx-auto">
+								<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+								<Loader2 className="w-16 h-16 text-primary animate-spin relative" />
+							</div>
+							<div className="space-y-2">
+								<h3 className="text-xl font-bold text-foreground font-heading tracking-tight">
+									Exporting your image...
+								</h3>
+								<p className="text-sm text-muted-foreground">
+									Generating HD quality result locally.
+								</p>
+							</div>
+						</div>
+					) : (
+						<div className="space-y-8 animate-in zoom-in-95 fade-in duration-500">
+							<div className="space-y-4">
+								<div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-500/5">
+									<Download className="w-10 h-10 text-emerald-500" />
+								</div>
+								<div className="space-y-2">
+									<h3 className="text-2xl font-bold text-foreground font-heading tracking-tight">
+										Your image is ready
+									</h3>
+									<p className="text-sm text-muted-foreground leading-relaxed">
+										deBackground is a solo project built to provide free,
+										private background removal for everyone. If this tool saved
+										you some time, a small tip helps keep the servers running!
+									</p>
+								</div>
+							</div>
+
+							<div className="flex flex-col gap-3">
+								<a
+									href="https://ko-fi.com/kcsujeet"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="group relative flex items-center justify-center gap-3 w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-xl shadow-rose-500/20 overflow-hidden"
+								>
+									<div className="absolute inset-0 bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+									<Heart className="w-5 h-5 fill-white animate-pulse" />
+									<span>Support</span>
+								</a>
+								<Button
+									variant="ghost"
+									className="text-muted-foreground text-xs hover:text-foreground"
+									onClick={() => setShowDownloadDialog(false)}
+								>
+									Maybe later
+								</Button>
+							</div>
+						</div>
 					)}
 				</DialogContent>
 			</Dialog>

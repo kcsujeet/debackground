@@ -166,8 +166,8 @@ export default function ImageEditor({
 	};
 
 	return (
-		<div className="w-full h-full bg-background flex flex-col items-center justify-center p-0 md:p-4">
-			<div className="w-full h-full glass-premium rounded-none md:rounded-3xl overflow-hidden flex flex-col md:flex-row relative">
+		<div className="w-full h-full bg-background flex flex-col items-center justify-center p-0 md:p-4 overflow-hidden">
+			<div className="w-full h-full rounded-none md:rounded-3xl overflow-hidden flex flex-col md:flex-row relative">
 				{/* Workspace */}
 				<div className="flex-1 relative bg-muted overflow-hidden w-full h-full">
 					{isCleanupMode ? <RefineOverlay /> : <CropperWorkspace />}

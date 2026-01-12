@@ -16,6 +16,7 @@ export default function CropperWorkspace() {
 		aspect,
 		setImageAspect,
 		rotation,
+		zoom,
 		bgColor,
 		bgImage,
 		filters,
@@ -94,15 +95,15 @@ export default function CropperWorkspace() {
 	return (
 		<div className="w-full h-full relative flex items-center justify-center bg-muted p-4 sm:p-8 overflow-hidden select-none">
 			<div
-				className="relative shadow-2xl transition-transform duration-300"
+				className="relative shadow-2xl transition-transform duration-300 overflow-hidden"
 				style={{
-					transform: `rotate(${rotation}deg)`,
+					transform: `rotate(${rotation}deg) scale(${zoom})`,
 				}}
 			>
 				{/* Background Layer - receives filters */}
 				{bgImage ? (
 					<div
-						className="absolute inset-0 z-0"
+						className="absolute -inset-px z-0"
 						style={{
 							backgroundImage: `url(${bgImage})`,
 							backgroundSize: "cover",
@@ -112,7 +113,7 @@ export default function CropperWorkspace() {
 					/>
 				) : bgColor !== "transparent" ? (
 					<div
-						className="absolute inset-0 z-0"
+						className="absolute -inset-px z-0"
 						style={{
 							backgroundColor: bgColor,
 							filter: filterStyle,
@@ -128,7 +129,8 @@ export default function CropperWorkspace() {
 					onChange={onCropChange}
 					onComplete={onCropComplete}
 					aspect={aspect}
-					className="max-w-full max-h-full relative z-10"
+					className="max-w-full max-h-full relative z-10 block"
+					style={{ display: "block" }}
 					ruleOfThirds
 				>
 					<img
@@ -137,7 +139,7 @@ export default function CropperWorkspace() {
 						alt="Crop workspace"
 						onLoad={onImageLoad}
 						style={{
-							maxHeight: "75vh",
+							maxHeight: "60vh",
 							width: "auto",
 							display: "block",
 						}}

@@ -1,3 +1,5 @@
+import { Heart } from "lucide-react";
+
 export default function Header() {
 	return (
 		<nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/60 backdrop-blur-xl">
@@ -26,6 +28,15 @@ export default function Header() {
 						</a>
 						<div className="h-4 w-px bg-border"></div>
 						<a
+							href="https://ko-fi.com/kcsujeet"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1.5 px-4 py-1.5 text-muted-foreground hover:text-rose-500 transition-all font-medium group"
+						>
+							<Heart className="w-4 h-4 group-hover:fill-rose-500 group-hover:text-rose-500 transition-all" />
+							<span>Donate</span>
+						</a>
+						<a
 							href="/remove"
 							className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full font-semibold text-xs hover:bg-primary/90 transition-all shadow-sm"
 						>
@@ -33,12 +44,22 @@ export default function Header() {
 						</a>
 					</div>
 
-					<a
-						href="/remove"
-						className="md:hidden px-4 py-1.5 bg-primary text-primary-foreground rounded-full font-semibold text-xs hover:bg-primary/90 transition-all"
-					>
-						Start
-					</a>
+					<div className="flex items-center gap-2 md:hidden">
+						<a
+							href="https://ko-fi.com/kcsujeet"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="p-2 text-muted-foreground hover:text-rose-500 transition-all"
+						>
+							<Heart className="w-5 h-5" />
+						</a>
+						<a
+							href="/remove"
+							className="px-4 py-1.5 bg-primary text-primary-foreground rounded-full font-semibold text-xs hover:bg-primary/90 transition-all"
+						>
+							Start
+						</a>
+					</div>
 				</div>
 			</div>
 		</nav>

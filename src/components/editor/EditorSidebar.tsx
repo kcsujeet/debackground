@@ -22,18 +22,18 @@ import { Slider } from "@/components/ui/Slider";
 import { useEditorStore } from "./useEditorStore";
 
 const BACKGROUND_COLORS = [
-	"transparent",
-	"#ffffff",
-	"#000000",
-	"#f8fafc", // Slate 50
-	"#f1f5f9", // Slate 100
-	"#e2e8f0", // Slate 200
-	"#6366f1", // Indigo 500
-	"#4f46e5", // Indigo 600
-	"#06b6d4", // Cyan 500
-	"#10b981", // Emerald 500
-	"#f59e0b", // Amber 500
-	"#ef4444", // Rose 500
+	{ value: "transparent", label: "None" },
+	{ value: "#ffffff", label: "White" },
+	{ value: "#000000", label: "Black" },
+	{ value: "#fff1f2", label: "Mist" },
+	{ value: "#eff6ff", label: "Sky" },
+	{ value: "#f0fdf4", label: "Honeydew" },
+	{ value: "#fffbeb", label: "Ivory" },
+	{ value: "#faf5ff", label: "Lavender" },
+	{ value: "#ecfeff", label: "Cyan" },
+	{ value: "#ecfdf5", label: "Mint" },
+	{ value: "#fff7ed", label: "Peach" },
+	{ value: "#fdf2f8", label: "Rose" },
 ];
 
 interface EditorSidebarProps {
@@ -82,7 +82,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 	return (
 		<div
 			className={`
-			absolute md:relative inset-y-0 right-0 w-[280px] sm:w-80 border-l border-border bg-card/60 backdrop-blur-2xl flex flex-col shrink-0 z-50 transition-transform duration-300 ease-in-out
+			absolute md:relative inset-y-0 right-0 w-[280px] sm:w-80 h-full border-l border-border bg-card/60 backdrop-blur-2xl flex flex-col shrink-0 z-50 transition-transform duration-300 ease-in-out
 			${isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}
 			${!isOpen ? "pointer-events-none md:pointer-events-auto" : "pointer-events-auto"}
 		`}
@@ -101,7 +101,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 					<X className="w-4 h-4" />
 				</Button>
 			</div>
-			<div className="p-6 space-y-8 overflow-y-auto flex-1">
+			<div className="p-6 space-y-8 overflow-y-auto flex-1 h-full">
 				{isCleanupMode ? (
 					<div className="space-y-8 animate-in slide-in-from-right duration-300">
 						<div>
@@ -202,25 +202,36 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 							<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
 								<Palette className="w-3 h-3" /> Background
 							</h4>
-							<div className="flex flex-wrap gap-2.5">
+							<div className="grid grid-cols-5 gap-y-5 gap-x-2">
 								{BACKGROUND_COLORS.map((color) => (
-									<button
-										type="button"
-										key={color}
-										onClick={() => setBgColor(color)}
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 ${bgColor === color ? "border-primary ring-4 ring-primary/10" : "border-border/50 shadow-sm"} ${color === "transparent" ? "bg-checkered" : ""}`}
-										style={{
-											backgroundColor:
-												color === "transparent" ? undefined : color,
-										}}
-									/>
+									<div
+										key={color.value}
+										className="flex flex-col items-center gap-1.5 shrink-0"
+									>
+										<button
+											type="button"
+											onClick={() => setBgColor(color.value)}
+											className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-105 active:scale-95 ${bgColor === color.value ? "border-primary ring-4 ring-primary/10" : "border-border/50 shadow-sm"} ${color.value === "transparent" ? "bg-checkered" : ""}`}
+											style={{
+												backgroundColor:
+													color.value === "transparent"
+														? undefined
+														: color.value,
+											}}
+										/>
+										<span className="text-[9px] uppercase font-bold tracking-tighter text-muted-foreground truncate w-full text-center">
+											{color.label}
+										</span>
+									</div>
 								))}
-								<div className="relative group">
+								<div className="flex flex-col items-center gap-1.5 shrink-0 relative group">
 									<button
 										type="button"
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center bg-card ${!BACKGROUND_COLORS.includes(bgColor) && bgColor !== "transparent" ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center bg-card ${!BACKGROUND_COLORS.some((c) => c.value === bgColor) && bgColor !== "transparent" ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
 										style={{
-											backgroundColor: !BACKGROUND_COLORS.includes(bgColor)
+											backgroundColor: !BACKGROUND_COLORS.some(
+												(c) => c.value === bgColor,
+											)
 												? bgColor
 												: "white",
 										}}
@@ -229,24 +240,29 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 										}
 									>
 										<Palette
-											className={`w-4 h-4 ${!BACKGROUND_COLORS.includes(bgColor) ? "text-primary-foreground mix-blend-difference" : "text-muted-foreground"}`}
+											className={`w-4 h-4 ${!BACKGROUND_COLORS.some((c) => c.value === bgColor) ? "text-primary-foreground mix-blend-difference" : "text-muted-foreground"}`}
 										/>
 									</button>
+									<span className="text-[9px] uppercase font-bold tracking-tighter text-muted-foreground">
+										Custom
+									</span>
 									<input
 										id="custom-color"
 										type="color"
 										value={
-											BACKGROUND_COLORS.includes(bgColor) ? "#6366f1" : bgColor
+											BACKGROUND_COLORS.some((c) => c.value === bgColor)
+												? "#f1f5f9"
+												: bgColor
 										}
 										onChange={(e) => setBgColor(e.target.value)}
 										className="absolute inset-0 opacity-0 cursor-pointer"
 									/>
 								</div>
 								{/* Upload Background Image */}
-								<div className="relative">
+								<div className="flex flex-col items-center gap-1.5 shrink-0 relative">
 									<button
 										type="button"
-										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center ${bgImage ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
+										className={`w-9 h-9 rounded-xl border-[3px] transition-all cursor-pointer hover:scale-105 active:scale-95 flex items-center justify-center ${bgImage ? "border-primary ring-4 ring-primary/10" : "border-border shadow-sm"}`}
 										onClick={() =>
 											document.getElementById("bg-image-upload")?.click()
 										}
@@ -265,6 +281,9 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 											<Image className="w-4 h-4 text-muted-foreground" />
 										)}
 									</button>
+									<span className="text-[9px] uppercase font-bold tracking-tighter text-muted-foreground">
+										{bgImage ? "Image" : "Photo"}
+									</span>
 									<input
 										id="bg-image-upload"
 										type="file"
@@ -280,7 +299,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 						<div>
 							<div className="flex items-center justify-between mb-4">
 								<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-									<Contrast className="w-3 h-3" /> Background Filters
+									<Contrast className="w-3 h-3" /> Bg Filters
 								</h4>
 								<Button
 									variant="ghost"

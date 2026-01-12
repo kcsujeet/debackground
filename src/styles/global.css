@@ -133,10 +133,6 @@
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
-.glass-premium {
-  @apply bg-card/40 backdrop-blur-xl border border-border/50 shadow-2xl;
-}
-
 .font-heading {
   font-family: 'Outfit', sans-serif;
 }
