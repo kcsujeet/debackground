@@ -63,21 +63,25 @@ export default function BackgroundRemover() {
 	}, []);
 
 	const processFile = useCallback((file: File) => {
-		const url = URL.createObjectURL(file);
-		setImage(url);
-		setProcessedImage(null);
-		setError(null);
-		setIsProcessing(true);
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const url = e.target?.result as string;
+			setImage(url);
+			setProcessedImage(null);
+			setError(null);
+			setIsProcessing(true);
 
-		if (workerRef.current) {
-			workerRef.current.postMessage({
-				action: "process",
-				imageData: url,
-			});
-		} else {
-			setError("Worker not initialized. Please refresh the page.");
-			setIsProcessing(false);
-		}
+			if (workerRef.current) {
+				workerRef.current.postMessage({
+					action: "process",
+					imageData: url,
+				});
+			} else {
+				setError("Worker not initialized. Please refresh the page.");
+				setIsProcessing(false);
+			}
+		};
+		reader.readAsDataURL(file);
 	}, []);
 
 	const onDrop = useCallback(
