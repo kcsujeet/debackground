@@ -184,7 +184,7 @@ export default function ImageEditor({
 				{isSidebarOpen && (
 					<button
 						type="button"
-						className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 md:hidden animate-in fade-in duration-300 w-full h-full border-none p-0 cursor-default"
+						className="fixed inset-0 bg-black/60 z-50 md:hidden animate-in fade-in duration-300 w-full h-full border-none p-0 cursor-default"
 						onClick={() => setIsSidebarOpen(false)}
 						aria-label="Close sidebar"
 					/>

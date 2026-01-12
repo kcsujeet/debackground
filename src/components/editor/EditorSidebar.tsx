@@ -82,7 +82,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 	return (
 		<div
 			className={`
-			absolute md:relative inset-y-0 right-0 w-[280px] sm:w-80 h-full border-l border-border bg-card/60 backdrop-blur-2xl flex flex-col shrink-0 z-50 transition-transform duration-300 ease-in-out
+			absolute md:relative inset-y-0 right-0 w-[280px] sm:w-80 h-full border-l border-border bg-background flex flex-col shrink-0 z-50 transition-transform duration-300 ease-in-out
 			${isOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}
 			${!isOpen ? "pointer-events-none md:pointer-events-auto" : "pointer-events-auto"}
 		`}

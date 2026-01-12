@@ -19,7 +19,7 @@ export default function EditorToolbar({
 					variant="secondary"
 					size="sm"
 					type="button"
-					className="bg-white/80 backdrop-blur-md border border-slate-200"
+					className="bg-white border border-slate-200"
 					onClick={onExit}
 				>
 					<X className="w-4 h-4" />
@@ -29,7 +29,7 @@ export default function EditorToolbar({
 				<Button
 					variant="secondary"
 					size="sm"
-					className="md:hidden bg-white/80 backdrop-blur-md border border-slate-200 h-10 w-10 p-0 rounded-full"
+					className="md:hidden bg-white border border-slate-200 h-10 w-10 p-0 rounded-full"
 					onClick={onToggleSidebar}
 					title="Tools & Settings"
 				>

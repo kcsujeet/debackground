@@ -161,14 +161,14 @@ export default function BackgroundRemover() {
 				</div>
 			) : (
 				<div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-					<Card className="rounded-3xl overflow-hidden gap-0 pb-0 shadow-lg border-border/50">
-						<CardHeader className="border-b flex flex-row items-center justify-between py-4 space-y-0">
+					<Card className="rounded-3xl overflow-hidden gap-0 py-0 shadow-lg border-border/50">
+						<CardHeader className="border-b flex flex-row items-center justify-between py-4! space-y-0">
 							<CardTitle className="p-0">
 								{!isProcessing && processedImage && (
 									<div className="flex items-center gap-4">
 										<Badge
 											variant="secondary"
-											className="bg-primary/20 text-primary border-primary/20 font-bold uppercase tracking-wider text-[10px]"
+											className="bg-primary text-primary-foreground border-primary font-bold uppercase tracking-wider text-[10px]"
 										>
 											Result
 										</Badge>
@@ -210,7 +210,7 @@ export default function BackgroundRemover() {
 														variant="default"
 														size="sm"
 														onClick={download}
-														className="shadow-lg shadow-primary/20"
+														className="shadow-primary/20 bg-primary"
 													>
 														<Download className="w-4 h-4" />
 														<span className="hidden @[500px]/card-header:inline">
@@ -245,7 +245,7 @@ export default function BackgroundRemover() {
 
 								{/* Loading State */}
 								{isProcessing && (
-									<div className="absolute inset-0 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center z-20 text-center p-8">
+									<div className="absolute inset-0 bg-background flex flex-col items-center justify-center z-20 text-center p-8">
 										<div className="relative mb-6">
 											<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 animate-pulse" />
 											<Loader2 className="w-12 h-12 text-primary animate-spin relative" />
@@ -261,9 +261,9 @@ export default function BackgroundRemover() {
 
 								{/* Error State */}
 								{error && (
-									<div className="absolute inset-0 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center z-30 p-8 text-center">
-										<div className="p-4 bg-rose-500/10 rounded-2xl mb-4 border border-rose-500/20">
-											<X className="w-8 h-8 text-rose-500" />
+									<div className="absolute inset-0 bg-background flex flex-col items-center justify-center z-30 p-8 text-center">
+										<div className="p-4 bg-rose-500 rounded-2xl mb-4 border border-rose-500">
+											<X className="w-8 h-8 text-white" />
 										</div>
 										<h4 className="text-lg font-bold text-rose-500 mb-2">
 											Processing Error
@@ -320,13 +320,13 @@ export default function BackgroundRemover() {
 
 			<Dialog open={showDownloadDialog} onOpenChange={setShowDownloadDialog}>
 				<DialogContent
-					className="max-w-md p-8 text-center rounded-4xl border-primary/10"
+					className="max-w-md p-6 md:p-8 text-center rounded-4xl border-primary/10"
 					showCloseButton={false}
 				>
 					{isExporting ? (
 						<div className="space-y-6 pt-4">
 							<div className="relative w-fit mx-auto">
-								<div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
+								<div className="absolute inset-0 bg-primary/10 blur-xl rounded-full animate-pulse" />
 								<Loader2 className="w-16 h-16 text-primary animate-spin relative" />
 							</div>
 							<div className="space-y-2">
@@ -341,8 +341,8 @@ export default function BackgroundRemover() {
 					) : (
 						<div className="space-y-8 animate-in zoom-in-95 fade-in duration-500">
 							<div className="space-y-4">
-								<div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-500/5">
-									<Download className="w-10 h-10 text-emerald-500" />
+								<div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-500/10">
+									<Download className="w-10 h-10 text-white" />
 								</div>
 								<div className="space-y-2">
 									<h3 className="text-2xl font-bold text-foreground font-heading tracking-tight">

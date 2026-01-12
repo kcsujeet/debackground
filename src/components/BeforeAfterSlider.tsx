@@ -99,7 +99,7 @@ export default function BeforeAfterSlider({
 
 				{/* Slider line and handle */}
 				<div
-					className="absolute top-0 bottom-0 w-0.5 shadow z-10 pointer-events-none bg-white/20 backdrop-blur-[10px]"
+					className="absolute top-0 bottom-0 w-0.5 shadow z-10 pointer-events-none bg-white/40"
 					style={{ left: `${sliderPosition}%` }}
 				>
 					<Button

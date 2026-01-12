@@ -52,7 +52,7 @@ export default function HeroExamples() {
 			</div>
 
 			{/* Category Selector */}
-			{/* <div className="flex items-center gap-2 md:gap-4 p-1.5 bg-card/50 backdrop-blur-md rounded-full w-fit max-w-full mx-auto overflow-x-auto scrollbar-none flex-nowrap px-4 md:px-1.5">
+			{/* <div className="flex items-center gap-2 md:gap-4 p-1.5 bg-card rounded-full w-fit max-w-full mx-auto overflow-x-auto scrollbar-none flex-nowrap px-4 md:px-1.5">
 				{EXAMPLES.map((example) => {
 					const Icon = example.icon;
 					const isActive = activeId === example.id;
