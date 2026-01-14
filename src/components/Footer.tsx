@@ -1,3 +1,5 @@
+import { CONTACT_EMAIL } from "@/lib/constants";
+
 export default function Footer() {
 	const currentYear = new Date().getFullYear();
 
@@ -51,10 +53,10 @@ export default function Footer() {
 						<ul className="space-y-2 text-sm text-muted-foreground">
 							<li>
 								<a
-									href="mailto:ilamy.dev@gmail.com"
+									href={`mailto:${CONTACT_EMAIL}`}
 									className="hover:text-foreground transition-colors underline"
 								>
-									ilamy.dev@gmail.com
+									{CONTACT_EMAIL}
 								</a>
 							</li>
 						</ul>

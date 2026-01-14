@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { CONTACT_EMAIL } from "../lib/constants";
 ---
 
 <Layout 
@@ -63,7 +64,7 @@ import Footer from "../components/Footer";
 						<h2 class="text-2xl font-semibold text-foreground">5. Contact</h2>
 						<p>
 							If you have questions about our privacy approach, please reach out via 
-							<a href="mailto:ilamy.dev@gmail.com" class="text-primary hover:underline font-medium">ilamy.dev@gmail.com</a>.
+							<a href={`mailto:${CONTACT_EMAIL}`} class="text-primary hover:underline font-medium">{CONTACT_EMAIL}</a>.
 						</p>
 					</div>
 				</section>

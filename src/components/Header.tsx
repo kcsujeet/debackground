@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { DONATION_LINK } from "@/lib/constants";
 
 export default function Header() {
 	return (
@@ -28,7 +29,7 @@ export default function Header() {
 						</a>
 						<div className="h-4 w-px bg-border"></div>
 						<a
-							href="https://ko-fi.com/kcsujeet"
+							href={DONATION_LINK}
 							target="_blank"
 							rel="noopener noreferrer"
 							className="flex items-center gap-1.5 px-4 py-1.5 text-muted-foreground hover:text-rose-500 transition-all font-medium group"
@@ -46,7 +47,7 @@ export default function Header() {
 
 					<div className="flex items-center gap-2 md:hidden">
 						<a
-							href="https://ko-fi.com/kcsujeet"
+							href={DONATION_LINK}
 							target="_blank"
 							rel="noopener noreferrer"
 							className="p-2 text-muted-foreground hover:text-rose-500 transition-all"

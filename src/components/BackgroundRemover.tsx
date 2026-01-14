@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { DONATION_LINK } from "@/lib/constants";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import ImageEditor from "./ImageEditor";
 import { Badge } from "./ui/Badge";
@@ -358,7 +359,7 @@ export default function BackgroundRemover() {
 
 							<div className="flex flex-col gap-3">
 								<a
-									href="https://ko-fi.com/kcsujeet"
+									href={DONATION_LINK}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="group relative flex items-center justify-center gap-3 w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-xl shadow-rose-500/20 overflow-hidden"
