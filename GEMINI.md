@@ -13,7 +13,7 @@ The project has been rebranded from PureBG to **deBackground**. It features a mo
 
 ## Technology Stack
 - **Runtime/Package Manager**: Bun
-- **Background Removal**: Transformers.js (MIT) - `onnx-community/BiRefNet_lite-ONNX`
+- **Background Removal**: Transformers.js (MIT) - `Xenova/modnet`
 - **Framework**: Astro + React
 - **Styling**: Tailwind CSS v4 (Canonical classes)
 - **State Management**: Zustand v5
