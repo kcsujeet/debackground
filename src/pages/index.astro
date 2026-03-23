@@ -1,6 +1,7 @@
 ---
 import HeroExamples from "../components/HeroExamples";
 import Header from "../components/Header";
+import CTA from "../components/CTA";
 import Footer from "../components/Footer";
 import Layout from "../layouts/Layout.astro";
 ---
@@ -61,7 +62,7 @@ import Layout from "../layouts/Layout.astro";
 		</section>
 
 		<!-- Features & Values -->
-		<section id="features" class="relative py-24 md:py-32 overflow-hidden">
+		<section id="features" class="relative py-24 overflow-hidden">
 			<!-- Subtle Background Blobs for the section -->
 			<div class="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] -z-10 rounded-full"></div>
 			<div class="absolute bottom-0 right-0 w-[400px] h-[400px] bg-indigo-500/5 blur-[100px] -z-10 rounded-full"></div>
@@ -146,6 +147,8 @@ import Layout from "../layouts/Layout.astro";
 				</div>
 			</div>
 		</section>
+
+		<CTA client:load />
 
 		<Footer />
 	</main>
