@@ -101,7 +101,7 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 					<X className="w-4 h-4" />
 				</Button>
 			</div>
-			<div className="p-6 space-y-8 overflow-y-auto flex-1 h-full">
+			<div className="p-6 space-y-8 overflow-y-auto scrollbar-visible flex-1 h-full">
 				{isCleanupMode ? (
 					<div className="space-y-8 animate-in slide-in-from-right duration-300">
 						<div>
@@ -198,6 +198,19 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 					</div>
 				) : (
 					<div className="space-y-8 animate-in slide-in-from-left duration-300">
+						{/* Fixing the cutout comes before styling it, so this leads rather
+						    than sitting below several screens of appearance controls. */}
+						<div className="pb-6 border-b border-border">
+							<Button
+								variant="outline"
+								className="w-full h-14 rounded-2xl"
+								onClick={() => setIsCleanupMode(true)}
+							>
+								<Paintbrush className="w-5 h-5" />
+								Refine Edges
+							</Button>
+						</div>
+
 						<div>
 							<h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
 								<Palette className="w-3 h-3" /> Background
@@ -484,17 +497,6 @@ export default function EditorSidebar({ isOpen, onClose }: EditorSidebarProps) {
 								value={[zoom]}
 								onValueChange={(val) => setZoom(val[0])}
 							/>
-						</div>
-
-						<div className="pt-4 border-t border-border">
-							<Button
-								variant="outline"
-								className="w-full h-14 rounded-2xl"
-								onClick={() => setIsCleanupMode(true)}
-							>
-								<Paintbrush className="w-5 h-5" />
-								Refine Edges
-							</Button>
 						</div>
 					</div>
 				)}

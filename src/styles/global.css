@@ -150,6 +150,60 @@
   display: none;
 }
 
+/*
+  A scrollbar that stays visible instead of fading out when idle.
+
+  macOS defaults to overlay scrollbars, which are only painted while actively
+  scrolling, so a long panel gives no hint that there is more content below.
+  Giving `::-webkit-scrollbar` an explicit width is what fixes this: "when you set
+  the width or height of ::-webkit-scrollbar, an overlay scrollbar is always
+  displayed, effectively turning it into a classic scrollbar."
+  https://developer.chrome.com/docs/css-ui/scrollbar-styling
+
+  Deliberately no `scrollbar-width` or `scrollbar-color` here. Any non-auto value
+  for either overrides the pseudo-elements below, which restores the overlay
+  scrollbar and undoes the whole point of this class. Firefox supports only the
+  standard properties, so it keeps its platform default.
+  https://developer.mozilla.org/en-US/docs/Web/CSS/::-webkit-scrollbar
+
+  `scrollbar-gutter: stable` reserves the track's width up front so content does
+  not shift sideways as the scrollbar appears.
+*/
+.scrollbar-visible {
+  scrollbar-gutter: stable;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  width: 14px;
+}
+
+/*
+  The track stays transparent on purpose. This panel is the right-hand edge of a
+  rounded dialog, and a filled track paints a square block into that corner, which
+  reads as the corner being chopped off. The thumb is inset and fully rounded, so it
+  carries the affordance on its own.
+*/
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/*
+  The 3px transparent border insets the thumb from the track edges while
+  `background-clip: content-box` keeps the paint off the border box, leaving an 8px
+  thumb in a 14px track. The colour comes from --muted-foreground rather than
+  --border, which at oklch(0.922) is too close to the panel to read at this width.
+*/
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background-clip: content-box;
+}
+
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
+
 html {
   scroll-behavior: smooth;
 }
