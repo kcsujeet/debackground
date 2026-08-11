@@ -19,6 +19,14 @@ export default defineConfig({
 	},
 	vite: {
 		plugins: [tailwindcss()],
+		optimizeDeps: {
+			// Transformers.js is reached only through the background-removal worker, so
+			// Vite's source crawl misses it and re-optimizes once the worker first loads.
+			// That re-optimization changes the dep hash mid-session, which 504s the module
+			// URLs an already-open tab is holding and leaves the React island unhydrated.
+			// https://vite.dev/guide/dep-pre-bundling
+			include: ["@huggingface/transformers"],
+		},
 		resolve: {
 			alias: {
 				"@": path.resolve(__dirname, "./src"),

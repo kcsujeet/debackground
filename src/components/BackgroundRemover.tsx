@@ -10,6 +10,9 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { DONATION_LINK } from "@/lib/constants";
+import { toWorkingImage } from "@/lib/prepare-image";
+import { formatMegabytes } from "@/lib/utils";
+import type { DownloadProgress } from "@/workers/download-progress";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import ImageEditor from "./ImageEditor";
 import { Badge } from "./ui/Badge";
@@ -28,11 +31,15 @@ export default function BackgroundRemover() {
 	const [processedImage, setProcessedImage] = useState<string | null>(null);
 	const [isProcessing, setIsProcessing] = useState(false);
 	const [status, setStatus] = useState<string | null>(null);
+	const [modelDownload, setModelDownload] = useState<DownloadProgress | null>(
+		null,
+	);
 	const [error, setError] = useState<string | null>(null);
 	const [showEditor, setShowEditor] = useState(false);
 	const [showDownloadDialog, setShowDownloadDialog] = useState(false);
 	const [isExporting, setIsExporting] = useState(false);
 	const workerRef = useRef<Worker | null>(null);
+	const objectUrlRef = useRef<string | null>(null);
 
 	useEffect(() => {
 		workerRef.current = new Worker(
@@ -43,46 +50,59 @@ export default function BackgroundRemover() {
 		workerRef.current.onmessage = (event) => {
 			const { status: workerStatus, message, processedImageUrl } = event.data;
 
-			if (workerStatus === "loading" || workerStatus === "processing") {
+			if (workerStatus === "downloading") {
+				const { percent, loaded, total } = event.data;
+				setStatus("Downloading AI model...");
+				setModelDownload({ percent, loaded, total });
+			} else if (workerStatus === "loading" || workerStatus === "processing") {
 				setStatus(message);
-			} else if (workerStatus === "ready") {
-				setStatus(null);
+				setModelDownload(null);
 			} else if (workerStatus === "complete") {
 				setProcessedImage(processedImageUrl);
 				setIsProcessing(false);
 				setStatus(null);
+				setModelDownload(null);
 			} else if (workerStatus === "error") {
 				setError(message);
 				setIsProcessing(false);
 				setStatus(null);
+				setModelDownload(null);
 			}
 		};
 
 		return () => {
 			workerRef.current?.terminate();
+			if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
 		};
 	}, []);
 
-	const processFile = useCallback((file: File) => {
-		const reader = new FileReader();
-		reader.onload = (e) => {
-			const url = e.target?.result as string;
-			setImage(url);
-			setProcessedImage(null);
-			setError(null);
-			setIsProcessing(true);
+	const processFile = useCallback(async (file: File) => {
+		setProcessedImage(null);
+		setError(null);
+		setIsProcessing(true);
 
-			if (workerRef.current) {
-				workerRef.current.postMessage({
-					action: "process",
-					imageData: url,
-				});
-			} else {
-				setError("Worker not initialized. Please refresh the page.");
-				setIsProcessing(false);
-			}
-		};
-		reader.readAsDataURL(file);
+		if (!workerRef.current) {
+			setError("Worker not initialized. Please refresh the page.");
+			setIsProcessing(false);
+			return;
+		}
+
+		try {
+			// Downscale before anything else holds a copy. A blob URL also avoids the
+			// base64 data URL, which was retained in state and copied again to the worker.
+			const working = await toWorkingImage(file);
+
+			if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+			objectUrlRef.current = URL.createObjectURL(working);
+			setImage(objectUrlRef.current);
+
+			workerRef.current.postMessage({ action: "process", imageData: working });
+		} catch (err) {
+			setError(
+				err instanceof Error ? err.message : "Could not read that image.",
+			);
+			setIsProcessing(false);
+		}
 	}, []);
 
 	const onDrop = useCallback(
@@ -101,6 +121,10 @@ export default function BackgroundRemover() {
 	});
 
 	const reset = () => {
+		if (objectUrlRef.current) {
+			URL.revokeObjectURL(objectUrlRef.current);
+			objectUrlRef.current = null;
+		}
 		setImage(null);
 		setProcessedImage(null);
 		setError(null);
@@ -254,9 +278,29 @@ export default function BackgroundRemover() {
 										<h4 className="text-lg font-bold text-foreground mb-1">
 											{status || "Almost there..."}
 										</h4>
-										<p className="text-sm text-muted-foreground max-w-[200px]">
-											Processing locally in your browser
-										</p>
+										{!modelDownload && (
+											<p className="text-sm text-muted-foreground max-w-[200px]">
+												Processing locally in your browser
+											</p>
+										)}
+
+										{modelDownload && (
+											<div className="w-full max-w-[220px] mt-5">
+												<div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+													<div
+														className="h-full rounded-full bg-primary transition-[width] duration-300"
+														style={{ width: `${modelDownload.percent}%` }}
+													/>
+												</div>
+												<p className="mt-2 text-xs text-muted-foreground tabular-nums">
+													{formatMegabytes(modelDownload.loaded)} of{" "}
+													{formatMegabytes(modelDownload.total)}
+												</p>
+												<p className="mt-1 text-xs text-muted-foreground">
+													One-time download, cached for next time
+												</p>
+											</div>
+										)}
 									</div>
 								)}
 

@@ -13,7 +13,7 @@ The project has been rebranded from PureBG to **deBackground**. It features a mo
 
 ## Technology Stack
 - **Runtime/Package Manager**: Bun
-- **Background Removal**: Transformers.js (MIT) - `Xenova/modnet`
+- **Background Removal**: Transformers.js (MIT) - `studioludens/birefnet-lite-512`
 - **Framework**: Astro + React
 - **Styling**: Tailwind CSS v4 (Canonical classes)
 - **State Management**: Zustand v5
@@ -24,8 +24,45 @@ The project has been rebranded from PureBG to **deBackground**. It features a mo
 - [x] UI Modernization (OKLCH, Glassmorphism, Linear-inspired).
 - [x] Integrated Interactive Before/After Slider.
 - [x] Refined Zoom Precision.
+- [x] Switch from `Xenova/modnet` (portrait-only) to BiRefNet_lite for general-purpose
+      segmentation, so products, objects, animals and plants work as well as people.
+- [x] Settle on the 512x512 BiRefNet_lite export. The 1024x1024 one cannot run here:
+      WebGPU needs 11 storage buffers per shader stage against a common adapter cap of
+      10, and the CPU backend hits `std::bad_alloc` at that resolution.
+
+## Background Removal Notes
+Inputs are capped at `MAX_WORKING_EDGE` (2048px longest edge) by `src/lib/prepare-image.ts`
+before anything holds a copy, and travel to the worker as a Blob rather than a base64 data
+URL. Both exist because full-resolution phone photos crashed mobile browsers outright: the
+pipeline holds roughly six full-size buffers, which at 12 MP is ~300 MB on top of the model.
+Raising the cap re-opens that crash.
+
+The model id lives in `src/lib/constants.ts` and is asserted against this file and the
+README by `src/tests/docs-consistency.test.ts`, so update the constant rather than the docs.
+
+The worker picks a backend at runtime (`src/workers/select-backend.ts`): WebGPU with fp16
+weights (114 MB) where the adapter reports `shader-f16`, otherwise fp32 (224 MB). Retry
+policy lives in `src/workers/run-with-fallback.ts`: a backend that throws during load or
+inference is dropped permanently and the next one is tried, ending on WASM. Each run logs
+its device, dtype and timings to the console under `[background-removal]`.
+
+BiRefNet's heaviest shader binds 11 storage buffers per stage, more than WebGPU's *default*
+limit of 10. `createWebGpuDevice()` therefore requests the adapter's own maximum and hands
+that device to ONNX Runtime before the first session is created. Adapters reporting less
+than `REQUIRED_STORAGE_BUFFERS_PER_STAGE` skip WebGPU altogether: raising the limit cannot
+help once the adapter is the ceiling, and attempting it would waste a 114 MB download and
+initialise a WebGPU provider the CPU fallback then has to work around.
+
+Every backend decision is logged under `[background-removal]`, including the adapter's
+reported limit and the resulting plan. Keep it that way — silent capability probes made
+this path very hard to diagnose from bug reports.
 
 ## Next Steps
 - [ ] Monitor for performance bottlenecks in edge cases.
-- [ ] Explore additional AI models for specific image types (e.g., hair, sharp edges).
+- [ ] Measure WASM fp32 inference time now that the model fits. If it is intolerable,
+      the remaining levers are downscaling large inputs before inference or quantizing
+      the model ourselves (no q8 BiRefNet build is published).
+- [ ] Confirm `REQUIRED_STORAGE_BUFFERS_PER_STAGE` against this 512 export. It was
+      measured on the 1024 build; the architecture is the same so the count should hold,
+      but erring high only costs the WebGPU path, never correctness.
 
