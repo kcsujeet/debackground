@@ -34,7 +34,7 @@ export default function Header() {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1.5 px-4 py-1.5 text-muted-foreground hover:text-rose-500 transition-all font-medium group"
 						>
-							<Heart className="w-4 h-4 group-hover:fill-rose-500 group-hover:text-rose-500 transition-all" />
+							<Heart className="w-4 h-4 fill-rose-500 text-rose-500 group-hover:fill-rose-600 group-hover:text-rose-600 transition-all" />
 							<span>Donate</span>
 						</a>
 						<a
@@ -52,7 +52,7 @@ export default function Header() {
 							rel="noopener noreferrer"
 							className="p-2 text-muted-foreground hover:text-rose-500 transition-all"
 						>
-							<Heart className="w-5 h-5" />
+							<Heart className="w-5 h-5 fill-rose-500 text-rose-500 hover:fill-rose-600 hover:text-rose-600 transition-all" />
 						</a>
 						<a
 							href="/remove"
