@@ -1,5 +1,6 @@
 import { env, pipeline, type RawImage } from "@huggingface/transformers";
 import { BACKGROUND_REMOVAL_MODEL_ID } from "../lib/constants";
+import { formatMegabytes } from "../lib/utils";
 import { aggregateProgress, type FileDownload } from "./download-progress";
 import { firstResult } from "./pipeline-output";
 import {
@@ -14,22 +15,16 @@ import {
 	REQUIRED_STORAGE_BUFFERS_PER_STAGE,
 	selectBackends,
 } from "./select-backend";
+import { isWeightsCached } from "./weights-path";
 
-// Safe detection of Cache API / IndexedDB availability
-// Some mobile browsers or private modes disable these, which would cause errors if useBrowserCache is true
-let isCacheAvailable = false;
-try {
-	isCacheAvailable =
-		typeof caches !== "undefined" && typeof indexedDB !== "undefined";
-} catch (_e) {
-	isCacheAvailable = false;
-}
-
-env.useBrowserCache = isCacheAvailable;
-
-if (!isCacheAvailable) {
+// Transformers.js enables the Cache API whenever it is available and already handles
+// the case where `caches.open` is blocked despite being visible, as happens in
+// incognito and sandboxed iframes. Leaving the decision to it is deliberate: the
+// override this replaces also demanded IndexedDB, which model caching never touches,
+// and so silently disabled caching wherever IDB was unavailable.
+if (!env.useBrowserCache) {
 	console.warn(
-		"Browser cache/IndexedDB is not available. Models will be downloaded every session.",
+		"Browser cache is not available. Models will be downloaded every session.",
 	);
 }
 
@@ -98,7 +93,56 @@ const MEMORY_LEAN_SESSION = {
 const downloads = new Map<string, FileDownload>();
 
 let remover: BackgroundRemover | null = null;
+/**
+ * Whether the current load is actually fetching the weights over the network.
+ *
+ * Outside Firefox, Transformers.js streams cached files through the same
+ * incremental progress callbacks as a download, so the events alone cannot tell the
+ * two apart. Asking the cache up front can.
+ */
+let isFetchingWeights = false;
 let backendQueue: InferenceBackend[] | null = null;
+
+/**
+ * Reports whether the weights are actually persisting between sessions.
+ *
+ * Transformers.js stores them in the Cache API under `env.cacheKey`, and a failed
+ * write is only a warning: the model silently re-downloads every visit. Logging the
+ * entry count, matching keys and storage quota distinguishes a rejected write from a
+ * key that never matches.
+ */
+async function reportCacheState(): Promise<void> {
+	if (typeof caches === "undefined") {
+		console.warn(
+			"[background-removal] Cache API unavailable; weights will re-download every session",
+		);
+		return;
+	}
+
+	try {
+		const cache = await caches.open(env.cacheKey);
+		const keys = await cache.keys();
+		const modelKeys = keys.filter((request) =>
+			request.url.includes(BACKGROUND_REMOVAL_MODEL_ID),
+		);
+		const estimate = await navigator.storage?.estimate?.();
+
+		console.log(
+			`[background-removal] cache="${env.cacheKey}" useBrowserCache=${env.useBrowserCache} entries=${keys.length} forThisModel=${modelKeys.length}` +
+				(estimate
+					? ` storage=${formatMegabytes(estimate.usage ?? 0)}/${formatMegabytes(estimate.quota ?? 0)}`
+					: ""),
+		);
+
+		for (const request of modelKeys) {
+			console.log(`[background-removal] cached: ${request.url}`);
+		}
+	} catch (error) {
+		console.warn(
+			`[background-removal] cache probe failed: ${describeError(error)}`,
+		);
+	}
+}
 
 function reportDownloadProgress(event: ModelLoadProgress): void {
 	if (event.status !== "progress" || !event.file) return;
@@ -107,6 +151,8 @@ function reportDownloadProgress(event: ModelLoadProgress): void {
 		loaded: event.loaded ?? 0,
 		total: event.total ?? 0,
 	});
+
+	if (!isFetchingWeights) return;
 
 	self.postMessage({
 		status: "downloading",
@@ -139,6 +185,31 @@ async function configureWebGpuDevice(): Promise<void> {
 	console.log(`[background-removal] ${detail}`);
 }
 
+/**
+ * Whether the weights for `dtype` still need fetching.
+ *
+ * Any uncertainty is reported as "already cached" so a probe failure produces a
+ * missing progress bar rather than a bar that never advances.
+ */
+async function needsWeightsDownload(
+	dtype: InferenceBackend["dtype"],
+): Promise<boolean> {
+	if (typeof caches === "undefined") return false;
+
+	try {
+		const cache = await caches.open(env.cacheKey);
+		const keys = await cache.keys();
+
+		return !isWeightsCached(
+			keys.map((request) => request.url),
+			BACKGROUND_REMOVAL_MODEL_ID,
+			dtype,
+		);
+	} catch (_error) {
+		return false;
+	}
+}
+
 async function loadRemover(
 	backend: InferenceBackend,
 ): Promise<BackgroundRemover> {
@@ -148,7 +219,13 @@ async function loadRemover(
 		await configureWebGpuDevice();
 	}
 
-	self.postMessage({ status: "loading", message: "Loading AI model..." });
+	isFetchingWeights = await needsWeightsDownload(backend.dtype);
+
+	// Deliberately not a distinct "loading the model" phase. Once the weights are
+	// cached this step is invisible work on the way to a result, and announcing it
+	// made every reload look like it was fetching the model again. A real download
+	// still announces itself, because that one the user genuinely waits on.
+	self.postMessage({ status: "processing", message: "Removing background..." });
 
 	remover = await createBackgroundRemover(
 		"background-removal",
@@ -209,6 +286,14 @@ async function selectedBackends(): Promise<InferenceBackend[]> {
 	console.log(
 		`[background-removal] webgpu=${capabilities.hasWebGpu} shader-f16=${capabilities.hasShaderF16} maxStorageBuffers=${capabilities.maxStorageBuffersPerShaderStage} (need ${REQUIRED_STORAGE_BUFFERS_PER_STAGE}) -> ${plan}`,
 	);
+
+	// Threading is the difference between one core and several on the CPU backend,
+	// and it silently degrades to single-threaded without cross-origin isolation.
+	console.log(
+		`[background-removal] crossOriginIsolated=${globalThis.crossOriginIsolated} cores=${navigator.hardwareConcurrency} numThreads=${env.backends.onnx?.wasm?.numThreads ?? "auto"}`,
+	);
+
+	await reportCacheState();
 
 	return backendQueue;
 }
