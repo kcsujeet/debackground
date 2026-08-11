@@ -1,0 +1,15 @@
+# Cross-origin isolation. ONNX Runtime only enables multi-threaded WASM when
+# `crossOriginIsolated` is true, so without these the CPU backend runs
+# single-threaded and background removal is several times slower.
+# https://onnxruntime.ai/docs/tutorials/web/env-flags-and-session-options.html
+#
+# Safe for every cross-origin resource this site loads: the model weights on
+# huggingface.co pass the CORS check, and Google Fonts serves
+# `Cross-Origin-Resource-Policy: cross-origin`. Anything added later must do one
+# or the other, or it will be blocked.
+#
+# Read by Cloudflare Pages and Netlify. Other hosts need their own equivalent:
+# `vercel.json` headers on Vercel, `nginx add_header` when self-hosting.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp

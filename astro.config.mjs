@@ -16,6 +16,14 @@ export default defineConfig({
 	server: {
 		host: true,
 		port: 4324,
+		// ONNX Runtime only enables multi-threaded WASM when `crossOriginIsolated` is
+		// true, so without these the CPU backend runs single-threaded. Applies to
+		// `astro dev` and `astro preview`; production is mirrored in `public/_headers`.
+		// https://onnxruntime.ai/docs/tutorials/web/env-flags-and-session-options.html
+		headers: {
+			"Cross-Origin-Opener-Policy": "same-origin",
+			"Cross-Origin-Embedder-Policy": "require-corp",
+		},
 	},
 	vite: {
 		plugins: [tailwindcss()],
