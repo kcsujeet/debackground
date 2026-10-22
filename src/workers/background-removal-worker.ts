@@ -3,6 +3,7 @@ import {
 	BACKGROUND_REMOVAL_MODEL_ID,
 	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
 } from "../lib/constants";
+import { formatConsoleArgs, mirrorConsole } from "../lib/debug-log";
 import { formatMegabytes } from "../lib/utils";
 import { aggregateProgress, type FileDownload } from "./download-progress";
 import { firstResult } from "./pipeline-output";
@@ -369,6 +370,36 @@ async function removeBackground(
 	}
 }
 
+let isMirroringConsole = false;
+
+/**
+ * Sends every console line, and any error nothing caught, to the page for its
+ * `?debug=1` panel. Off unless asked for, so normal sessions pay nothing.
+ */
+function startMirroringConsole(): void {
+	if (isMirroringConsole) return;
+	isMirroringConsole = true;
+
+	mirrorConsole(console, (level, text) => {
+		self.postMessage({ status: "log", level, text });
+	});
+
+	self.addEventListener("error", (event) => {
+		self.postMessage({
+			status: "log",
+			level: "error",
+			text: `Uncaught: ${formatConsoleArgs([event.error ?? event.message])}`,
+		});
+	});
+	self.addEventListener("unhandledrejection", (event) => {
+		self.postMessage({
+			status: "log",
+			level: "error",
+			text: `Unhandled rejection: ${formatConsoleArgs([event.reason])}`,
+		});
+	});
+}
+
 self.onmessage = async (
 	event: MessageEvent<{
 		action?: string;
@@ -377,7 +408,19 @@ self.onmessage = async (
 	}>,
 ) => {
 	const { action, imageData, enhancedModelFailed = false } = event.data;
+	if (action === "debug") {
+		startMirroringConsole();
+		return;
+	}
 	if (action !== "process" || !imageData) return;
+
+	console.log(
+		`[background-removal] input ${
+			imageData instanceof Blob
+				? `blob type="${imageData.type}" size=${imageData.size}`
+				: `url ${imageData.slice(0, 40)}`
+		}`,
+	);
 
 	try {
 		const { blob, backend, loadMs, inferMs } = await removeBackground(
