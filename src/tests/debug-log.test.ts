@@ -56,6 +56,17 @@ test("keeps an error's message when it has no stack", () => {
 	);
 });
 
+test("includes an error's cause, which carries the browser's reason", () => {
+	const cause = new Error("The source image could not be decoded.");
+	cause.stack = undefined;
+	const error = new Error("This image couldn't be read.", { cause });
+	error.stack = undefined;
+
+	expect(formatConsoleArgs([error])).toBe(
+		"Error: This image couldn't be read.\nCaused by: Error: The source image could not be decoded.",
+	);
+});
+
 test("falls back to String for values JSON cannot encode", () => {
 	const circular: Record<string, unknown> = {};
 	circular.self = circular;

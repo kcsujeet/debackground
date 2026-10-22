@@ -20,6 +20,7 @@ import {
 	recordModelSuccess,
 } from "@/lib/enhanced-model-memory";
 import { toWorkingImage } from "@/lib/prepare-image";
+import { UNREADABLE_IMAGE_MESSAGE } from "@/lib/unreadable-image";
 import { formatMegabytes } from "@/lib/utils";
 import type { DownloadProgress } from "@/workers/download-progress";
 import BeforeAfterSlider from "./BeforeAfterSlider";
@@ -142,9 +143,11 @@ export default function BackgroundRemover() {
 
 				postProcess(working);
 			} catch (err) {
-				setError(
-					err instanceof Error ? err.message : "Could not read that image.",
-				);
+				// Reading and decoding are the only steps here, so any failure is the
+				// file's. The browser's wording ("The source image could not be
+				// decoded.") goes to the console, where `?debug=1` can show it.
+				console.error("Could not prepare the image:", err);
+				setError(UNREADABLE_IMAGE_MESSAGE);
 				setIsProcessing(false);
 			}
 		},

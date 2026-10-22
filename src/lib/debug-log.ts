@@ -30,9 +30,13 @@ export function isDebugEnabled(search: string): boolean {
 function formatArg(arg: unknown): string {
 	if (typeof arg === "string") return arg;
 	if (arg instanceof Error) {
-		return arg.stack?.includes(arg.message)
+		const text = arg.stack?.includes(arg.message)
 			? arg.stack
 			: `${arg.name}: ${arg.message}`;
+
+		return arg.cause === undefined
+			? text
+			: `${text}\nCaused by: ${formatArg(arg.cause)}`;
 	}
 
 	try {
