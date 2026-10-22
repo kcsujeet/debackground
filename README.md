@@ -18,27 +18,35 @@
 - **Runtime**: [Bun](https://bun.sh/)
 - **Framework**: [Astro](https://astro.build/) + [React](https://reactjs.org/)
 - **AI Engine**: [Transformers.js](https://huggingface.co/docs/transformers.js/) (MIT)
-- **Model**: `studioludens/birefnet-lite-512`
+- **Models**: `onnx-community/BEN2-ONNX` where the device can run it, otherwise `studioludens/birefnet-lite-512`
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand)
 
 ## 🧠 The Model
 
-deBackground runs [BiRefNet_lite](https://github.com/ZhengPeng7/BiRefNet) (MIT) at 512×512,
-then scales the predicted mask back up to your image's full resolution.
+deBackground tries [BEN2 Base](https://huggingface.co/PramaLLC/BEN2) (MIT) first, which
+handles products, animals and plants noticeably better, and falls back to
+[BiRefNet_lite](https://github.com/ZhengPeng7/BiRefNet) (MIT) at 512×512 everywhere BEN2
+can't run. Either way the predicted mask is scaled back up to your image's resolution.
 
 The weights download once and are cached by the browser. Which build you get depends on
 your device:
 
 | Backend | Weights | Notes |
 | :--- | :--- | :--- |
-| WebGPU + fp16 | 98 MB | Requires a GPU adapter reporting `shader-f16` |
+| BEN2, WebGPU + fp16 | 219 MB | Needs `shader-f16`, and 8 GB of RAM where the browser reports it |
+| BiRefNet_lite, WebGPU + fp16 | 98 MB | Requires a GPU adapter reporting `shader-f16` |
 | WebGPU + fp32 | 192 MB | WebGPU adapters without fp16 support |
 | WASM + fp32 | 192 MB | CPU fallback — noticeably slower |
 
 Firefox ships WebGPU disabled by default; enable `dom.webgpu.enabled` in `about:config`
 for the fast path. Desktop Safari support is partial. If a backend fails to load or run,
-the worker retries on WASM before reporting an error.
+the worker moves down the table before reporting an error.
+
+BEN2 has no CPU path: it only ships as fp16, and a native CPU run peaked at 3.4 GB. If it
+fails on a device, or the tab dies while it runs (Safari kills a tab that runs out of
+memory instead of raising an error), that browser remembers it in `localStorage` and
+uses BiRefNet_lite from then on.
 
 ### Working resolution
 

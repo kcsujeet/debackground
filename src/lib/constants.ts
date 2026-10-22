@@ -15,3 +15,14 @@ export const CONTACT_EMAIL = "ilamy.dev@gmail.com";
  * @see https://huggingface.co/studioludens/birefnet-lite-512
  */
 export const BACKGROUND_REMOVAL_MODEL_ID = "studioludens/birefnet-lite-512";
+
+/**
+ * BEN2 Base, MIT licensed. Noticeably better than BiRefNet_lite on non-human
+ * subjects, and tried first wherever the device can take it.
+ *
+ * It only ships as fp16 (219 MB) at a fixed 1024x1024 input, so it needs WebGPU
+ * with `shader-f16`. The CPU is out of reach: a native run peaked at 3.4 GB of
+ * memory, far beyond what a mobile browser tab is given.
+ * @see https://huggingface.co/onnx-community/BEN2-ONNX
+ */
+export const ENHANCED_BACKGROUND_REMOVAL_MODEL_ID = "onnx-community/BEN2-ONNX";

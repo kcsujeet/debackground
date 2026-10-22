@@ -1,7 +1,13 @@
+import {
+	BACKGROUND_REMOVAL_MODEL_ID,
+	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
+} from "../lib/constants";
+
 export type InferenceDevice = "webgpu" | "wasm";
 export type InferenceDtype = "fp16" | "fp32";
 
 export interface InferenceBackend {
+	model: string;
 	device: InferenceDevice;
 	dtype: InferenceDtype;
 }
@@ -12,7 +18,32 @@ export interface GpuCapabilities {
 	maxStorageBuffersPerShaderStage: number;
 }
 
-const CPU_FALLBACK: InferenceBackend = { device: "wasm", dtype: "fp32" };
+export interface DeviceProfile extends GpuCapabilities {
+	/** `navigator.deviceMemory`; undefined where the browser hides it (Safari, Firefox). */
+	deviceMemoryGb: number | undefined;
+	/** The enhanced model failed or crashed the tab on this device before. */
+	enhancedModelFailed: boolean;
+}
+
+const CPU_FALLBACK: InferenceBackend = {
+	model: BACKGROUND_REMOVAL_MODEL_ID,
+	device: "wasm",
+	dtype: "fp32",
+};
+
+const ENHANCED_BACKEND: InferenceBackend = {
+	model: ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
+	device: "webgpu",
+	dtype: "fp16",
+};
+
+/**
+ * Below this the enhanced model is not attempted. A guess pending real-device
+ * numbers: BEN2 peaked at 3.4 GB on the CPU, and a phone's GPU shares that RAM.
+ * Chromium reports at most 8, so this admits 8 GB phones and every desktop.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Navigator/deviceMemory
+ */
+export const ENHANCED_MODEL_MIN_DEVICE_MEMORY_GB = 8;
 
 /**
  * BiRefNet's heaviest shader binds 11 storage buffers. ONNX Runtime's WebGPU
@@ -27,7 +58,7 @@ const CPU_FALLBACK: InferenceBackend = { device: "wasm", dtype: "fp32" };
 export const REQUIRED_STORAGE_BUFFERS_PER_STAGE = 11;
 
 /**
- * Backends to attempt in order, fastest first.
+ * BiRefNet_lite backends to attempt in order, fastest first.
  *
  * fp16 is only ever paired with WebGPU. The model repo publishes no quantized
  * build, so WASM has to run fp32, and Transformers.js throws outright when fp16
@@ -35,7 +66,7 @@ export const REQUIRED_STORAGE_BUFFERS_PER_STAGE = 11;
  * dtype up front avoids downloading the 114 MB fp16 weights only to discover
  * the adapter cannot use them.
  */
-export function selectBackends(
+function selectFallbackBackends(
 	capabilities: GpuCapabilities,
 ): InferenceBackend[] {
 	const canRunShader =
@@ -47,9 +78,39 @@ export function selectBackends(
 	}
 
 	return [
-		{ device: "webgpu", dtype: capabilities.hasShaderF16 ? "fp16" : "fp32" },
+		{
+			model: BACKGROUND_REMOVAL_MODEL_ID,
+			device: "webgpu",
+			dtype: capabilities.hasShaderF16 ? "fp16" : "fp32",
+		},
 		CPU_FALLBACK,
 	];
+}
+
+/**
+ * Whether the enhanced model is worth its 219 MB download on this device.
+ *
+ * There is no storage-buffer check: BEN2's per-shader count could not be measured
+ * outside a browser, so an adapter that falls short fails at runtime instead, and
+ * `enhancedModelFailed` keeps that device off it afterwards. The same flag catches
+ * Safari killing the tab for memory, which `deviceMemory` cannot predict there.
+ */
+export function canTryEnhancedModel(profile: DeviceProfile): boolean {
+	if (!profile.hasWebGpu || !profile.hasShaderF16) return false;
+	if (profile.enhancedModelFailed) return false;
+
+	return (
+		profile.deviceMemoryGb === undefined ||
+		profile.deviceMemoryGb >= ENHANCED_MODEL_MIN_DEVICE_MEMORY_GB
+	);
+}
+
+export function selectBackends(profile: DeviceProfile): InferenceBackend[] {
+	const fallbacks = selectFallbackBackends(profile);
+
+	return canTryEnhancedModel(profile)
+		? [ENHANCED_BACKEND, ...fallbacks]
+		: fallbacks;
 }
 
 export interface WebGpuDeviceResult {
