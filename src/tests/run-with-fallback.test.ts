@@ -5,8 +5,8 @@ import {
 } from "../workers/run-with-fallback";
 import type { InferenceBackend } from "../workers/select-backend";
 
-const GPU: InferenceBackend = { device: "webgpu", dtype: "fp16" };
-const CPU: InferenceBackend = { device: "wasm", dtype: "fp32" };
+const GPU: InferenceBackend = { model: "m", device: "webgpu", dtype: "fp16" };
+const CPU: InferenceBackend = { model: "m", device: "wasm", dtype: "fp32" };
 
 const noop = async () => {};
 
@@ -84,8 +84,8 @@ test("reports every backend failure for diagnostics", async () => {
 		throw new Error("expected BackendExhaustedError");
 	} catch (error) {
 		expect((error as BackendExhaustedError).failures).toEqual([
-			"webgpu/fp16: nope",
-			"wasm/fp32: nope",
+			"m webgpu/fp16: nope",
+			"m wasm/fp32: nope",
 		]);
 	}
 });
@@ -102,7 +102,7 @@ test("reports a cleanup failure alongside the attempt failure", async () => {
 		throw new Error("expected BackendExhaustedError");
 	} catch (error) {
 		expect((error as BackendExhaustedError).failures).toContain(
-			"cleanup after webgpu/fp16: release rejected",
+			"cleanup after m webgpu/fp16: release rejected",
 		);
 	}
 });

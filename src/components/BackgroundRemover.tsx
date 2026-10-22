@@ -10,6 +10,14 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { DONATION_LINK } from "@/lib/constants";
+import {
+	clearInterruptedAttempt,
+	hasEnhancedModelFailed,
+	markerStorage,
+	recordModelAttempt,
+	recordModelFailure,
+	recordModelSuccess,
+} from "@/lib/enhanced-model-memory";
 import { toWorkingImage } from "@/lib/prepare-image";
 import { formatMegabytes } from "@/lib/utils";
 import type { DownloadProgress } from "@/workers/download-progress";
@@ -41,7 +49,19 @@ export default function BackgroundRemover() {
 	const workerRef = useRef<Worker | null>(null);
 	const objectUrlRef = useRef<string | null>(null);
 
+	const postProcess = useCallback((imageData: Blob | string) => {
+		workerRef.current?.postMessage({
+			action: "process",
+			imageData,
+			enhancedModelFailed: hasEnhancedModelFailed(markerStorage()),
+		});
+	}, []);
+
 	useEffect(() => {
+		const storage = markerStorage();
+		const onPageHide = () => clearInterruptedAttempt(storage);
+		window.addEventListener("pagehide", onPageHide);
+
 		workerRef.current = new Worker(
 			new URL("../workers/background-removal-worker.ts", import.meta.url),
 			{ type: "module" },
@@ -50,7 +70,11 @@ export default function BackgroundRemover() {
 		workerRef.current.onmessage = (event) => {
 			const { status: workerStatus, message, processedImageUrl } = event.data;
 
-			if (workerStatus === "downloading") {
+			if (workerStatus === "attempt") {
+				recordModelAttempt(storage, event.data.model);
+			} else if (workerStatus === "attempt-failed") {
+				recordModelFailure(storage, event.data.model);
+			} else if (workerStatus === "downloading") {
 				const { percent, loaded, total } = event.data;
 				setStatus("Downloading AI model...");
 				setModelDownload({ percent, loaded, total });
@@ -58,6 +82,7 @@ export default function BackgroundRemover() {
 				setStatus(message);
 				setModelDownload(null);
 			} else if (workerStatus === "complete") {
+				recordModelSuccess(storage, event.data.meta.model);
 				setProcessedImage(processedImageUrl);
 				setIsProcessing(false);
 				setStatus(null);
@@ -71,39 +96,43 @@ export default function BackgroundRemover() {
 		};
 
 		return () => {
+			window.removeEventListener("pagehide", onPageHide);
 			workerRef.current?.terminate();
 			if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
 		};
 	}, []);
 
-	const processFile = useCallback(async (file: File) => {
-		setProcessedImage(null);
-		setError(null);
-		setIsProcessing(true);
+	const processFile = useCallback(
+		async (file: File) => {
+			setProcessedImage(null);
+			setError(null);
+			setIsProcessing(true);
 
-		if (!workerRef.current) {
-			setError("Worker not initialized. Please refresh the page.");
-			setIsProcessing(false);
-			return;
-		}
+			if (!workerRef.current) {
+				setError("Worker not initialized. Please refresh the page.");
+				setIsProcessing(false);
+				return;
+			}
 
-		try {
-			// Downscale before anything else holds a copy. A blob URL also avoids the
-			// base64 data URL, which was retained in state and copied again to the worker.
-			const working = await toWorkingImage(file);
+			try {
+				// Downscale before anything else holds a copy. A blob URL also avoids the
+				// base64 data URL, which was retained in state and copied again to the worker.
+				const working = await toWorkingImage(file);
 
-			if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-			objectUrlRef.current = URL.createObjectURL(working);
-			setImage(objectUrlRef.current);
+				if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+				objectUrlRef.current = URL.createObjectURL(working);
+				setImage(objectUrlRef.current);
 
-			workerRef.current.postMessage({ action: "process", imageData: working });
-		} catch (err) {
-			setError(
-				err instanceof Error ? err.message : "Could not read that image.",
-			);
-			setIsProcessing(false);
-		}
-	}, []);
+				postProcess(working);
+			} catch (err) {
+				setError(
+					err instanceof Error ? err.message : "Could not read that image.",
+				);
+				setIsProcessing(false);
+			}
+		},
+		[postProcess],
+	);
 
 	const onDrop = useCallback(
 		(acceptedFiles: File[]) => {
@@ -323,10 +352,7 @@ export default function BackgroundRemover() {
 												if (image && workerRef.current) {
 													setError(null);
 													setIsProcessing(true);
-													workerRef.current.postMessage({
-														action: "process",
-														imageData: image,
-													});
+													postProcess(image);
 												}
 											}}
 										>

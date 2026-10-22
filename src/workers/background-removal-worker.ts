@@ -1,5 +1,8 @@
 import { env, pipeline, type RawImage } from "@huggingface/transformers";
-import { BACKGROUND_REMOVAL_MODEL_ID } from "../lib/constants";
+import {
+	BACKGROUND_REMOVAL_MODEL_ID,
+	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
+} from "../lib/constants";
 import { formatMegabytes } from "../lib/utils";
 import { aggregateProgress, type FileDownload } from "./download-progress";
 import { firstResult } from "./pipeline-output";
@@ -10,6 +13,7 @@ import {
 } from "./run-with-fallback";
 import {
 	createWebGpuDevice,
+	type DeviceProfile,
 	detectGpuCapabilities,
 	type InferenceBackend,
 	REQUIRED_STORAGE_BUFFERS_PER_STAGE,
@@ -102,6 +106,13 @@ let remover: BackgroundRemover | null = null;
  */
 let isFetchingWeights = false;
 let backendQueue: InferenceBackend[] | null = null;
+/** ONNX Runtime only takes a device before its first WebGPU session. */
+let isWebGpuConfigured = false;
+
+const MODEL_IDS = [
+	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
+	BACKGROUND_REMOVAL_MODEL_ID,
+];
 
 /**
  * Reports whether the weights are actually persisting between sessions.
@@ -123,12 +134,12 @@ async function reportCacheState(): Promise<void> {
 		const cache = await caches.open(env.cacheKey);
 		const keys = await cache.keys();
 		const modelKeys = keys.filter((request) =>
-			request.url.includes(BACKGROUND_REMOVAL_MODEL_ID),
+			MODEL_IDS.some((model) => request.url.includes(model)),
 		);
 		const estimate = await navigator.storage?.estimate?.();
 
 		console.log(
-			`[background-removal] cache="${env.cacheKey}" useBrowserCache=${env.useBrowserCache} entries=${keys.length} forThisModel=${modelKeys.length}` +
+			`[background-removal] cache="${env.cacheKey}" useBrowserCache=${env.useBrowserCache} entries=${keys.length} forTheseModels=${modelKeys.length}` +
 				(estimate
 					? ` storage=${formatMegabytes(estimate.usage ?? 0)}/${formatMegabytes(estimate.quota ?? 0)}`
 					: ""),
@@ -162,10 +173,14 @@ function reportDownloadProgress(event: ModelLoadProgress): void {
 
 /**
  * Hands ONNX Runtime a device with a widened storage-buffer limit. Must run before
- * the first session is created, which is why it sits ahead of the pipeline call.
- * @see https://onnxruntime.ai/docs/tutorials/web/ep-webgpu.html
+ * the first session is created, which is why it sits ahead of the pipeline call,
+ * and only once: with two WebGPU models queued, the second must not replace it.
+ * @see https://onnxruntime.ai/docs/api/js/interfaces/Env.WebGpuFlags.html
  */
 async function configureWebGpuDevice(): Promise<void> {
+	if (isWebGpuConfigured) return;
+	isWebGpuConfigured = true;
+
 	const { device, detail } = await createWebGpuDevice();
 	const webgpu = env.backends.onnx?.webgpu;
 
@@ -192,7 +207,7 @@ async function configureWebGpuDevice(): Promise<void> {
  * missing progress bar rather than a bar that never advances.
  */
 async function needsWeightsDownload(
-	dtype: InferenceBackend["dtype"],
+	backend: InferenceBackend,
 ): Promise<boolean> {
 	if (typeof caches === "undefined") return false;
 
@@ -202,8 +217,8 @@ async function needsWeightsDownload(
 
 		return !isWeightsCached(
 			keys.map((request) => request.url),
-			BACKGROUND_REMOVAL_MODEL_ID,
-			dtype,
+			backend.model,
+			backend.dtype,
 		);
 	} catch (_error) {
 		return false;
@@ -219,7 +234,7 @@ async function loadRemover(
 		await configureWebGpuDevice();
 	}
 
-	isFetchingWeights = await needsWeightsDownload(backend.dtype);
+	isFetchingWeights = await needsWeightsDownload(backend);
 
 	// Deliberately not a distinct "loading the model" phase. Once the weights are
 	// cached this step is invisible work on the way to a result, and announcing it
@@ -227,18 +242,14 @@ async function loadRemover(
 	// still announces itself, because that one the user genuinely waits on.
 	self.postMessage({ status: "processing", message: "Removing background..." });
 
-	remover = await createBackgroundRemover(
-		"background-removal",
-		BACKGROUND_REMOVAL_MODEL_ID,
-		{
-			device: backend.device,
-			dtype: backend.dtype,
-			progress_callback: reportDownloadProgress,
-			...(backend.device === "wasm"
-				? { session_options: MEMORY_LEAN_SESSION }
-				: {}),
-		},
-	);
+	remover = await createBackgroundRemover("background-removal", backend.model, {
+		device: backend.device,
+		dtype: backend.dtype,
+		progress_callback: reportDownloadProgress,
+		...(backend.device === "wasm"
+			? { session_options: MEMORY_LEAN_SESSION }
+			: {}),
+	});
 
 	return remover;
 }
@@ -276,15 +287,23 @@ async function toTransparentPng(
 	return await image.toBlob("image/png");
 }
 
-async function selectedBackends(): Promise<InferenceBackend[]> {
+async function selectedBackends(
+	enhancedModelFailed: boolean,
+): Promise<InferenceBackend[]> {
 	if (backendQueue) return backendQueue;
 
-	const capabilities = await detectGpuCapabilities();
-	backendQueue = selectBackends(capabilities);
+	const profile: DeviceProfile = {
+		...(await detectGpuCapabilities()),
+		deviceMemoryGb: (navigator as { deviceMemory?: number }).deviceMemory,
+		enhancedModelFailed,
+	};
+	backendQueue = selectBackends(profile);
 
-	const plan = backendQueue.map((b) => `${b.device}/${b.dtype}`).join(" then ");
+	const plan = backendQueue
+		.map((b) => `${b.model} ${b.device}/${b.dtype}`)
+		.join(" then ");
 	console.log(
-		`[background-removal] webgpu=${capabilities.hasWebGpu} shader-f16=${capabilities.hasShaderF16} maxStorageBuffers=${capabilities.maxStorageBuffersPerShaderStage} (need ${REQUIRED_STORAGE_BUFFERS_PER_STAGE}) -> ${plan}`,
+		`[background-removal] webgpu=${profile.hasWebGpu} shader-f16=${profile.hasShaderF16} maxStorageBuffers=${profile.maxStorageBuffersPerShaderStage} (need ${REQUIRED_STORAGE_BUFFERS_PER_STAGE}) deviceMemory=${profile.deviceMemoryGb ?? "unknown"}GB enhancedModelFailed=${enhancedModelFailed} -> ${plan}`,
 	);
 
 	// Threading is the difference between one core and several on the CPU backend,
@@ -298,24 +317,46 @@ async function selectedBackends(): Promise<InferenceBackend[]> {
 	return backendQueue;
 }
 
+/**
+ * Tells the page which model is about to run and whether it failed, so the page
+ * can remember a device the enhanced model does not work on. Workers have no
+ * `localStorage`, and a crash that kills the tab can only be seen from a marker
+ * written before the attempt.
+ */
+async function reportedAttempt<T>(
+	backend: InferenceBackend,
+	attempt: () => Promise<T>,
+): Promise<T> {
+	self.postMessage({ status: "attempt", model: backend.model });
+
+	try {
+		return await attempt();
+	} catch (error) {
+		self.postMessage({ status: "attempt-failed", model: backend.model });
+		throw error;
+	}
+}
+
 async function removeBackground(
 	imageData: Blob | string,
+	enhancedModelFailed: boolean,
 ): Promise<RemovalResult> {
-	const queue = await selectedBackends();
+	const queue = await selectedBackends(enhancedModelFailed);
 
 	try {
 		const { result, backend } = await runWithFallback(
 			queue,
-			async (candidate) => {
-				const loadStart = performance.now();
-				const segmenter = await loadRemover(candidate);
-				const loadMs = performance.now() - loadStart;
+			(candidate) =>
+				reportedAttempt(candidate, async () => {
+					const loadStart = performance.now();
+					const segmenter = await loadRemover(candidate);
+					const loadMs = performance.now() - loadStart;
 
-				const inferStart = performance.now();
-				const blob = await toTransparentPng(segmenter, imageData);
+					const inferStart = performance.now();
+					const blob = await toTransparentPng(segmenter, imageData);
 
-				return { blob, loadMs, inferMs: performance.now() - inferStart };
-			},
+					return { blob, loadMs, inferMs: performance.now() - inferStart };
+				}),
 			disposeRemover,
 		);
 
@@ -329,17 +370,23 @@ async function removeBackground(
 }
 
 self.onmessage = async (
-	event: MessageEvent<{ action?: string; imageData?: Blob | string }>,
+	event: MessageEvent<{
+		action?: string;
+		imageData?: Blob | string;
+		enhancedModelFailed?: boolean;
+	}>,
 ) => {
-	const { action, imageData } = event.data;
+	const { action, imageData, enhancedModelFailed = false } = event.data;
 	if (action !== "process" || !imageData) return;
 
 	try {
-		const { blob, backend, loadMs, inferMs } =
-			await removeBackground(imageData);
+		const { blob, backend, loadMs, inferMs } = await removeBackground(
+			imageData,
+			enhancedModelFailed,
+		);
 
 		console.log(
-			`[background-removal] ${backend.device}/${backend.dtype} load=${Math.round(loadMs)}ms infer=${Math.round(inferMs)}ms`,
+			`[background-removal] ${backend.model} ${backend.device}/${backend.dtype} load=${Math.round(loadMs)}ms infer=${Math.round(inferMs)}ms`,
 		);
 
 		self.postMessage({

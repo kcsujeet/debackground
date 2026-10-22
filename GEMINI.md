@@ -13,7 +13,8 @@ The project has been rebranded from PureBG to **deBackground**. It features a mo
 
 ## Technology Stack
 - **Runtime/Package Manager**: Bun
-- **Background Removal**: Transformers.js (MIT) - `studioludens/birefnet-lite-512`
+- **Background Removal**: Transformers.js (MIT) - `onnx-community/BEN2-ONNX` on capable
+  WebGPU devices, otherwise `studioludens/birefnet-lite-512`
 - **Framework**: Astro + React
 - **Styling**: Tailwind CSS v4 (Canonical classes)
 - **State Management**: Zustand v5
@@ -29,6 +30,8 @@ The project has been rebranded from PureBG to **deBackground**. It features a mo
 - [x] Settle on the 512x512 BiRefNet_lite export. The 1024x1024 one cannot run here:
       WebGPU needs 11 storage buffers per shader stage against a common adapter cap of
       10, and the CPU backend hits `std::bad_alloc` at that resolution.
+- [x] Add BEN2 Base (`onnx-community/BEN2-ONNX`, MIT, fp16 only, 1024x1024) ahead of
+      BiRefNet_lite for better non-human subjects, on WebGPU devices only.
 
 ## Background Removal Notes
 Inputs are capped at `MAX_WORKING_EDGE` (2048px longest edge) by `src/lib/prepare-image.ts`
@@ -56,6 +59,16 @@ initialise a WebGPU provider the CPU fallback then has to work around.
 Every backend decision is logged under `[background-removal]`, including the adapter's
 reported limit and the resulting plan. Keep it that way — silent capability probes made
 this path very hard to diagnose from bug reports.
+
+BEN2 is tried first when `canTryEnhancedModel()` passes: WebGPU, `shader-f16` (its only
+build is fp16), `navigator.deviceMemory` of at least 8 where the browser reports it, and no
+earlier failure on this device. That last one lives in `localStorage` via
+`src/lib/enhanced-model-memory.ts`, written by the page because workers have no
+`localStorage`. The worker posts `attempt` before each model and `attempt-failed` when one
+throws; a marker still reading "attempting" on the next load means the tab was killed.
+BEN2's storage-buffer need per shader is unmeasured (headless runs of the browser's ONNX
+Runtime build crashed), so there is no up-front check for it; an adapter that is too small
+fails at runtime and is remembered like any other failure.
 
 ## Next Steps
 - [ ] Monitor for performance bottlenecks in edge cases.

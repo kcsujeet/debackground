@@ -39,20 +39,17 @@ export async function runWithFallback<T>(
 
 	while (queue.length > 0) {
 		const backend = queue[0];
+		const label = `${backend.model} ${backend.device}/${backend.dtype}`;
 
 		try {
 			return { result: await attempt(backend), backend };
 		} catch (error) {
-			failures.push(
-				`${backend.device}/${backend.dtype}: ${describeError(error)}`,
-			);
+			failures.push(`${label}: ${describeError(error)}`);
 
 			try {
 				await cleanup();
 			} catch (cleanupError) {
-				failures.push(
-					`cleanup after ${backend.device}/${backend.dtype}: ${describeError(cleanupError)}`,
-				);
+				failures.push(`cleanup after ${label}: ${describeError(cleanupError)}`);
 			}
 
 			queue.shift();
