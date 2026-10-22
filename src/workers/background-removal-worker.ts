@@ -1,8 +1,10 @@
-import { env, pipeline, type RawImage } from "@huggingface/transformers";
+import { env, pipeline, RawImage } from "@huggingface/transformers";
 import {
 	BACKGROUND_REMOVAL_MODEL_ID,
 	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
 } from "../lib/constants";
+import { formatConsoleArgs, mirrorConsole } from "../lib/debug-log";
+import { readInputImage } from "../lib/unreadable-image";
 import { formatMegabytes } from "../lib/utils";
 import { aggregateProgress, type FileDownload } from "./download-progress";
 import { firstResult } from "./pipeline-output";
@@ -39,7 +41,7 @@ if (!env.useBrowserCache) {
  * @see https://huggingface.co/docs/transformers.js/en/api/pipelines
  */
 interface BackgroundRemover {
-	(image: Blob | string): Promise<RawImage | RawImage[]>;
+	(image: RawImage): Promise<RawImage | RawImage[]>;
 	dispose(): Promise<void>;
 }
 
@@ -272,7 +274,7 @@ async function disposeRemover(): Promise<void> {
 
 async function toTransparentPng(
 	segmenter: BackgroundRemover,
-	imageData: Blob | string,
+	image: RawImage,
 ): Promise<Blob> {
 	self.postMessage({
 		status: "processing",
@@ -282,9 +284,9 @@ async function toTransparentPng(
 	// The pipeline scales the predicted mask back up to the dimensions of whatever it
 	// was given and applies it as the alpha channel. The caller has already capped
 	// those dimensions, so the output matches the working image, not the source file.
-	const image = firstResult(await segmenter(imageData));
+	const result = firstResult(await segmenter(image));
 
-	return await image.toBlob("image/png");
+	return await result.toBlob("image/png");
 }
 
 async function selectedBackends(
@@ -341,6 +343,15 @@ async function removeBackground(
 	imageData: Blob | string,
 	enhancedModelFailed: boolean,
 ): Promise<RemovalResult> {
+	// Decoded once, ahead of every model: a file that cannot be read fails the
+	// same way on each backend, so it must not be mistaken for a model failure.
+	const image = await readInputImage(imageData, (input) =>
+		RawImage.read(input),
+	);
+	console.log(
+		`[background-removal] decoded ${image.width}x${image.height} channels=${image.channels}`,
+	);
+
 	const queue = await selectedBackends(enhancedModelFailed);
 
 	try {
@@ -353,7 +364,7 @@ async function removeBackground(
 					const loadMs = performance.now() - loadStart;
 
 					const inferStart = performance.now();
-					const blob = await toTransparentPng(segmenter, imageData);
+					const blob = await toTransparentPng(segmenter, image);
 
 					return { blob, loadMs, inferMs: performance.now() - inferStart };
 				}),
@@ -369,6 +380,36 @@ async function removeBackground(
 	}
 }
 
+let isMirroringConsole = false;
+
+/**
+ * Sends every console line, and any error nothing caught, to the page for its
+ * `?debug=1` panel. Off unless asked for, so normal sessions pay nothing.
+ */
+function startMirroringConsole(): void {
+	if (isMirroringConsole) return;
+	isMirroringConsole = true;
+
+	mirrorConsole(console, (level, text) => {
+		self.postMessage({ status: "log", level, text });
+	});
+
+	self.addEventListener("error", (event) => {
+		self.postMessage({
+			status: "log",
+			level: "error",
+			text: `Uncaught: ${formatConsoleArgs([event.error ?? event.message])}`,
+		});
+	});
+	self.addEventListener("unhandledrejection", (event) => {
+		self.postMessage({
+			status: "log",
+			level: "error",
+			text: `Unhandled rejection: ${formatConsoleArgs([event.reason])}`,
+		});
+	});
+}
+
 self.onmessage = async (
 	event: MessageEvent<{
 		action?: string;
@@ -377,7 +418,19 @@ self.onmessage = async (
 	}>,
 ) => {
 	const { action, imageData, enhancedModelFailed = false } = event.data;
+	if (action === "debug") {
+		startMirroringConsole();
+		return;
+	}
 	if (action !== "process" || !imageData) return;
+
+	console.log(
+		`[background-removal] input ${
+			imageData instanceof Blob
+				? `blob type="${imageData.type}" size=${imageData.size}`
+				: `url ${imageData.slice(0, 40)}`
+		}`,
+	);
 
 	try {
 		const { blob, backend, loadMs, inferMs } = await removeBackground(

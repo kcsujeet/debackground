@@ -12,6 +12,19 @@ function encodingFor(file: File): string {
 const JPEG_QUALITY = 0.92;
 
 /**
+ * Copies a picked file's bytes into memory.
+ *
+ * A `File` from the picker is a reference that is read lazily, and on Android it
+ * can stop being readable after the first read: the page decoded a photo, then the
+ * worker failed with "The source image could not be decoded" on the same File
+ * seconds later. Reading it once, straight away, leaves nothing to go stale.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Blob/arrayBuffer
+ */
+export async function toInMemoryBlob(file: Blob): Promise<Blob> {
+	return new Blob([await file.arrayBuffer()], { type: file.type });
+}
+
+/**
  * Returns the image to hand to the model and to display, downscaled to fit
  * `MAX_WORKING_EDGE` if needed.
  *
@@ -19,16 +32,22 @@ const JPEG_QUALITY = 0.92;
  * full-resolution buffer in the process, and on a phone that buffer plus the
  * pipeline's own copies is what exhausts the renderer.
  *
- * Falls back to the original file whenever downscaling is unnecessary or fails,
- * so a missing 2D context degrades to today's behaviour instead of erroring.
+ * Falls back to the in-memory copy of the file whenever downscaling is
+ * unnecessary or fails, so a missing 2D context degrades instead of erroring.
+ * Never returns the `File` itself; see `toInMemoryBlob`.
  */
 export async function toWorkingImage(file: File): Promise<Blob> {
-	const bitmap = await createImageBitmap(file);
+	const source = await toInMemoryBlob(file);
+	const bitmap = await createImageBitmap(source);
 	const target = fitWithin({ width: bitmap.width, height: bitmap.height });
+
+	console.log(
+		`[prepare-image] source type="${file.type}" size=${file.size} ${bitmap.width}x${bitmap.height} -> ${target.width}x${target.height}`,
+	);
 
 	if (target.width === bitmap.width && target.height === bitmap.height) {
 		bitmap.close();
-		return file;
+		return source;
 	}
 
 	const canvas = document.createElement("canvas");
@@ -38,7 +57,7 @@ export async function toWorkingImage(file: File): Promise<Blob> {
 	const context = canvas.getContext("2d");
 	if (!context) {
 		bitmap.close();
-		return file;
+		return source;
 	}
 
 	context.drawImage(bitmap, 0, 0, target.width, target.height);
@@ -48,5 +67,9 @@ export async function toWorkingImage(file: File): Promise<Blob> {
 		canvas.toBlob(resolve, encodingFor(file), JPEG_QUALITY);
 	});
 
-	return encoded ?? file;
+	console.log(
+		`[prepare-image] working type="${encoded?.type ?? "none"}" size=${encoded?.size ?? 0}`,
+	);
+
+	return encoded ?? source;
 }

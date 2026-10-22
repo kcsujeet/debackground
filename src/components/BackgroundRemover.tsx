@@ -10,6 +10,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { DONATION_LINK } from "@/lib/constants";
+import { isDebugEnabled } from "@/lib/debug-log";
 import {
 	clearInterruptedAttempt,
 	hasEnhancedModelFailed,
@@ -19,9 +20,12 @@ import {
 	recordModelSuccess,
 } from "@/lib/enhanced-model-memory";
 import { toWorkingImage } from "@/lib/prepare-image";
+import { UNREADABLE_IMAGE_MESSAGE } from "@/lib/unreadable-image";
 import { formatMegabytes } from "@/lib/utils";
 import type { DownloadProgress } from "@/workers/download-progress";
 import BeforeAfterSlider from "./BeforeAfterSlider";
+import DebugPanel from "./debug/DebugPanel";
+import { useDebugLog } from "./debug/useDebugLog";
 import ImageEditor from "./ImageEditor";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
@@ -48,6 +52,7 @@ export default function BackgroundRemover() {
 	const [isExporting, setIsExporting] = useState(false);
 	const workerRef = useRef<Worker | null>(null);
 	const objectUrlRef = useRef<string | null>(null);
+	const [isDebug, setIsDebug] = useState(false);
 
 	const postProcess = useCallback((imageData: Blob | string) => {
 		workerRef.current?.postMessage({
@@ -67,10 +72,23 @@ export default function BackgroundRemover() {
 			{ type: "module" },
 		);
 
+		// Read after hydration: the page is prerendered, so there is no query string
+		// at build time and reading it during render would mismatch.
+		const debug = isDebugEnabled(window.location.search);
+		setIsDebug(debug);
+		if (debug) workerRef.current.postMessage({ action: "debug" });
+
 		workerRef.current.onmessage = (event) => {
 			const { status: workerStatus, message, processedImageUrl } = event.data;
 
-			if (workerStatus === "attempt") {
+			if (workerStatus === "log") {
+				useDebugLog.getState().add({
+					time: Date.now(),
+					source: "worker",
+					level: event.data.level,
+					text: event.data.text,
+				});
+			} else if (workerStatus === "attempt") {
 				recordModelAttempt(storage, event.data.model);
 			} else if (workerStatus === "attempt-failed") {
 				recordModelFailure(storage, event.data.model);
@@ -125,9 +143,11 @@ export default function BackgroundRemover() {
 
 				postProcess(working);
 			} catch (err) {
-				setError(
-					err instanceof Error ? err.message : "Could not read that image.",
-				);
+				// Reading and decoding are the only steps here, so any failure is the
+				// file's. The browser's wording ("The source image could not be
+				// decoded.") goes to the console, where `?debug=1` can show it.
+				console.error("Could not prepare the image:", err);
+				setError(UNREADABLE_IMAGE_MESSAGE);
 				setIsProcessing(false);
 			}
 		},
@@ -450,6 +470,8 @@ export default function BackgroundRemover() {
 					)}
 				</DialogContent>
 			</Dialog>
+
+			{isDebug && <DebugPanel />}
 		</div>
 	);
 }
