@@ -1,4 +1,5 @@
 import { env, pipeline, RawImage } from "@huggingface/transformers";
+import { backendKey } from "../lib/backend-memory";
 import {
 	BACKGROUND_REMOVAL_MODEL_ID,
 	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
@@ -297,7 +298,7 @@ async function toTransparentPng(
 }
 
 async function selectedBackends(
-	enhancedModelFailed: boolean,
+	failedBackends: string[],
 	isMobile: boolean,
 ): Promise<InferenceBackend[]> {
 	if (backendQueue) return backendQueue;
@@ -305,7 +306,7 @@ async function selectedBackends(
 	const profile: DeviceProfile = {
 		...(await detectGpuCapabilities()),
 		deviceMemoryGb: (navigator as { deviceMemory?: number }).deviceMemory,
-		enhancedModelFailed,
+		failedBackends,
 		isMobile,
 	};
 	backendQueue = selectBackends(profile);
@@ -314,7 +315,7 @@ async function selectedBackends(
 		.map((b) => `${b.model} ${b.device}/${b.dtype}`)
 		.join(" then ");
 	console.log(
-		`[background-removal] webgpu=${profile.hasWebGpu} shader-f16=${profile.hasShaderF16} maxStorageBuffers=${profile.maxStorageBuffersPerShaderStage} (need ${REQUIRED_STORAGE_BUFFERS_PER_STAGE}) deviceMemory=${profile.deviceMemoryGb ?? "unknown"}GB enhancedModelFailed=${enhancedModelFailed} mobile=${isMobile} -> ${plan}`,
+		`[background-removal] webgpu=${profile.hasWebGpu} shader-f16=${profile.hasShaderF16} maxStorageBuffers=${profile.maxStorageBuffersPerShaderStage} (need ${REQUIRED_STORAGE_BUFFERS_PER_STAGE}) deviceMemory=${profile.deviceMemoryGb ?? "unknown"}GB failed=[${failedBackends.join(", ")}] mobile=${isMobile} -> ${plan}`,
 	);
 
 	// Threading is the difference between one core and several on the CPU backend,
@@ -329,8 +330,8 @@ async function selectedBackends(
 }
 
 /**
- * Tells the page which model is about to run and whether it failed, so the page
- * can remember a device the enhanced model does not work on. Workers have no
+ * Tells the page which backend is about to run and whether it failed, so the
+ * page can remember a backend that does not work on this device. Workers have no
  * `localStorage`, and a crash that kills the tab can only be seen from a marker
  * written before the attempt.
  */
@@ -338,19 +339,22 @@ async function reportedAttempt<T>(
 	backend: InferenceBackend,
 	attempt: () => Promise<T>,
 ): Promise<T> {
-	self.postMessage({ status: "attempt", model: backend.model });
+	self.postMessage({ status: "attempt", backend: backendKey(backend) });
 
 	try {
 		return await attempt();
 	} catch (error) {
-		self.postMessage({ status: "attempt-failed", model: backend.model });
+		self.postMessage({
+			status: "attempt-failed",
+			backend: backendKey(backend),
+		});
 		throw error;
 	}
 }
 
 async function removeBackground(
 	imageData: Blob | string,
-	enhancedModelFailed: boolean,
+	failedBackends: string[],
 	isMobile: boolean,
 ): Promise<RemovalResult> {
 	// Decoded once, ahead of every model: a file that cannot be read fails the
@@ -362,7 +366,7 @@ async function removeBackground(
 		`[background-removal] decoded ${image.width}x${image.height} channels=${image.channels}`,
 	);
 
-	const queue = await selectedBackends(enhancedModelFailed, isMobile);
+	const queue = await selectedBackends(failedBackends, isMobile);
 
 	try {
 		const { result, backend } = await runWithFallback(
@@ -424,14 +428,14 @@ self.onmessage = async (
 	event: MessageEvent<{
 		action?: string;
 		imageData?: Blob | string;
-		enhancedModelFailed?: boolean;
+		failedBackends?: string[];
 		isMobile?: boolean;
 	}>,
 ) => {
 	const {
 		action,
 		imageData,
-		enhancedModelFailed = false,
+		failedBackends = [],
 		// Unknown counts as mobile: missing BEN2 is cheaper than a killed tab.
 		isMobile = true,
 	} = event.data;
@@ -452,7 +456,7 @@ self.onmessage = async (
 	try {
 		const { blob, backend, loadMs, inferMs } = await removeBackground(
 			imageData,
-			enhancedModelFailed,
+			failedBackends,
 			isMobile,
 		);
 

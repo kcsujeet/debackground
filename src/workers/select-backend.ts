@@ -1,3 +1,4 @@
+import { backendKey } from "../lib/backend-memory";
 import {
 	BACKGROUND_REMOVAL_MODEL_ID,
 	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
@@ -21,8 +22,8 @@ export interface GpuCapabilities {
 export interface DeviceProfile extends GpuCapabilities {
 	/** `navigator.deviceMemory`; undefined where the browser hides it (Safari, Firefox). */
 	deviceMemoryGb: number | undefined;
-	/** The enhanced model failed or crashed the tab on this device before. */
-	enhancedModelFailed: boolean;
+	/** `backendKey`s that failed or crashed the tab on this browser before. */
+	failedBackends: string[];
 	/** Phone or tablet, per `isMobileDevice` on the page. */
 	isMobile: boolean;
 }
@@ -96,13 +97,11 @@ function selectFallbackBackends(
  *
  * There is no storage-buffer check: BEN2's per-shader count could not be measured
  * outside a browser, so an adapter that falls short fails at runtime instead, and
- * `enhancedModelFailed` keeps that device off it afterwards. The same flag catches
- * Safari killing the tab for memory, which `deviceMemory` cannot predict there.
+ * `failedBackends` keeps that device off it afterwards, as it does after a crash.
  */
 export function canTryEnhancedModel(profile: DeviceProfile): boolean {
 	if (profile.isMobile) return false;
 	if (!profile.hasWebGpu || !profile.hasShaderF16) return false;
-	if (profile.enhancedModelFailed) return false;
 
 	return (
 		profile.deviceMemoryGb === undefined ||
@@ -117,16 +116,24 @@ export function canTryEnhancedModel(profile: DeviceProfile): boolean {
  * BiRefNet_lite killed the tab partway through WebGPU inference, and a killed
  * tab cannot fall back. The CPU path ran to completion on the same phone, and
  * img.ly's background removal also defaults to the CPU.
+ *
+ * Any backend that failed or crashed the tab here before is left out, except
+ * the CPU: it is the last resort, and dropping it would leave nothing to run.
  * @see https://github.com/imgly/background-removal-js/blob/main/packages/web/src/schema.ts
  */
 export function selectBackends(profile: DeviceProfile): InferenceBackend[] {
 	if (profile.isMobile) return [CPU_FALLBACK];
 
 	const fallbacks = selectFallbackBackends(profile);
-
-	return canTryEnhancedModel(profile)
+	const candidates = canTryEnhancedModel(profile)
 		? [ENHANCED_BACKEND, ...fallbacks]
 		: fallbacks;
+
+	return candidates.filter(
+		(backend) =>
+			backend === CPU_FALLBACK ||
+			!profile.failedBackends.includes(backendKey(backend)),
+	);
 }
 
 export interface WebGpuDeviceResult {

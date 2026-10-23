@@ -48,10 +48,12 @@ BEN2 and BiRefNet_lite killed the tab partway through WebGPU inference, and a ki
 can't fall back to anything. Chrome reports at most 8 GB of memory, so `deviceMemory` alone
 can't tell that phone from a desktop.
 
-BEN2 has no CPU path: it only ships as fp16, and a native CPU run peaked at 3.4 GB. If it
-fails on a device, or the tab dies while it runs (Safari kills a tab that runs out of
-memory instead of raising an error), that browser remembers it in `localStorage` and
-uses BiRefNet_lite from then on.
+BEN2 has no CPU path: it only ships as fp16, and a native CPU run peaked at 3.4 GB.
+
+If any GPU backend fails on a device, or the tab dies while it runs (browsers kill a tab
+that runs out of memory rather than raising an error), that browser remembers it in
+`localStorage` and skips that backend from then on. The CPU backend is never skipped,
+since it's the last resort.
 
 ### Working resolution
 
