@@ -110,7 +110,18 @@ export function canTryEnhancedModel(profile: DeviceProfile): boolean {
 	);
 }
 
+/**
+ * Backends to attempt in order.
+ *
+ * Phones and tablets get the CPU only. On a Galaxy S22+ both BEN2 and
+ * BiRefNet_lite killed the tab partway through WebGPU inference, and a killed
+ * tab cannot fall back. The CPU path ran to completion on the same phone, and
+ * img.ly's background removal also defaults to the CPU.
+ * @see https://github.com/imgly/background-removal-js/blob/main/packages/web/src/schema.ts
+ */
 export function selectBackends(profile: DeviceProfile): InferenceBackend[] {
+	if (profile.isMobile) return [CPU_FALLBACK];
+
 	const fallbacks = selectFallbackBackends(profile);
 
 	return canTryEnhancedModel(profile)

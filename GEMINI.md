@@ -60,6 +60,10 @@ Every backend decision is logged under `[background-removal]`, including the ada
 reported limit and the resulting plan. Keep it that way — silent capability probes made
 this path very hard to diagnose from bug reports.
 
+Phones and tablets get only `studioludens/birefnet-lite-512` on WASM: on a Galaxy S22+
+both BEN2 and BiRefNet_lite killed the tab mid-inference on WebGPU, which no fallback can
+recover from. img.ly's background removal also defaults to the CPU.
+
 BEN2 is tried first when `canTryEnhancedModel()` passes: not a phone or tablet
 (`isMobileDevice()` in `src/lib/device-class.ts`, run on the page because workers lack
 `maxTouchPoints`; BEN2 crashed an 8 GB Galaxy S22+ tab mid-inference), WebGPU,

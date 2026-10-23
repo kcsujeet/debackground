@@ -122,8 +122,8 @@ test("never tries the enhanced model on a phone or tablet", () => {
 	expect(canTryEnhancedModel(profile({ isMobile: true }))).toBe(false);
 });
 
-test("a phone still gets BiRefNet_lite on its GPU", () => {
-	expect(selectBackends(profile({ isMobile: true }))).toEqual(fallbacks());
+test("a phone or tablet runs on the CPU only", () => {
+	expect(selectBackends(profile({ isMobile: true }))).toEqual([CPU]);
 });
 
 test("skips the enhanced model once it has failed on this device", () => {

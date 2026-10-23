@@ -35,18 +35,20 @@ your device:
 | Backend | Weights | Notes |
 | :--- | :--- | :--- |
 | BEN2, WebGPU + fp16 | 219 MB | Desktop only. Needs `shader-f16`, and 8 GB of RAM where the browser reports it |
-| BiRefNet_lite, WebGPU + fp16 | 98 MB | Requires a GPU adapter reporting `shader-f16` |
+| BiRefNet_lite, WebGPU + fp16 | 98 MB | Desktop only. Requires a GPU adapter reporting `shader-f16` |
 | WebGPU + fp32 | 192 MB | WebGPU adapters without fp16 support |
-| WASM + fp32 | 192 MB | CPU fallback — noticeably slower |
+| WASM + fp32 | 192 MB | Phones and tablets, and the CPU fallback everywhere — noticeably slower |
 
 Firefox ships WebGPU disabled by default; enable `dom.webgpu.enabled` in `about:config`
 for the fast path. Desktop Safari support is partial. If a backend fails to load or run,
 the worker moves down the table before reporting an error.
 
-BEN2 has no CPU path: it only ships as fp16, and a native CPU run peaked at 3.4 GB. It is
-never tried on phones or tablets either: it crashed an 8 GB Galaxy S22+ tab partway
-through inference, and Chrome reports at most 8 GB, so memory alone can't tell that phone
-from a desktop. If it
+Phones and tablets skip WebGPU and run BiRefNet_lite on the CPU. On a Galaxy S22+ both
+BEN2 and BiRefNet_lite killed the tab partway through WebGPU inference, and a killed tab
+can't fall back to anything. Chrome reports at most 8 GB of memory, so `deviceMemory` alone
+can't tell that phone from a desktop.
+
+BEN2 has no CPU path: it only ships as fp16, and a native CPU run peaked at 3.4 GB. If it
 fails on a device, or the tab dies while it runs (Safari kills a tab that runs out of
 memory instead of raising an error), that browser remembers it in `localStorage` and
 uses BiRefNet_lite from then on.
