@@ -23,6 +23,8 @@ export interface DeviceProfile extends GpuCapabilities {
 	deviceMemoryGb: number | undefined;
 	/** The enhanced model failed or crashed the tab on this device before. */
 	enhancedModelFailed: boolean;
+	/** Phone or tablet, per `isMobileDevice` on the page. */
+	isMobile: boolean;
 }
 
 const CPU_FALLBACK: InferenceBackend = {
@@ -90,12 +92,15 @@ function selectFallbackBackends(
 /**
  * Whether the enhanced model is worth its 219 MB download on this device.
  *
+ * Never on mobile: BEN2 crashed an 8 GB Galaxy S22+ tab mid-inference, twice.
+ *
  * There is no storage-buffer check: BEN2's per-shader count could not be measured
  * outside a browser, so an adapter that falls short fails at runtime instead, and
  * `enhancedModelFailed` keeps that device off it afterwards. The same flag catches
  * Safari killing the tab for memory, which `deviceMemory` cannot predict there.
  */
 export function canTryEnhancedModel(profile: DeviceProfile): boolean {
+	if (profile.isMobile) return false;
 	if (!profile.hasWebGpu || !profile.hasShaderF16) return false;
 	if (profile.enhancedModelFailed) return false;
 
@@ -105,7 +110,18 @@ export function canTryEnhancedModel(profile: DeviceProfile): boolean {
 	);
 }
 
+/**
+ * Backends to attempt in order.
+ *
+ * Phones and tablets get the CPU only. On a Galaxy S22+ both BEN2 and
+ * BiRefNet_lite killed the tab partway through WebGPU inference, and a killed
+ * tab cannot fall back. The CPU path ran to completion on the same phone, and
+ * img.ly's background removal also defaults to the CPU.
+ * @see https://github.com/imgly/background-removal-js/blob/main/packages/web/src/schema.ts
+ */
 export function selectBackends(profile: DeviceProfile): InferenceBackend[] {
+	if (profile.isMobile) return [CPU_FALLBACK];
+
 	const fallbacks = selectFallbackBackends(profile);
 
 	return canTryEnhancedModel(profile)

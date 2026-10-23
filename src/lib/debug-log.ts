@@ -89,3 +89,57 @@ export function formatEntries(entries: DebugEntry[]): string {
 		)
 		.join("\n");
 }
+
+export type LogStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+export const DEBUG_LOG_STORAGE_KEY = "debackground:debug-log";
+
+/**
+ * Lines kept across a reload. A tab Chrome kills for memory takes the in-memory
+ * log with it, and the last lines before the crash are the ones that matter.
+ */
+export const MAX_PERSISTED_ENTRIES = 300;
+
+function isDebugEntry(value: unknown): value is DebugEntry {
+	const entry = value as DebugEntry;
+
+	return (
+		typeof entry?.time === "number" &&
+		typeof entry.text === "string" &&
+		LEVELS.includes(entry.level) &&
+		(entry.source === "page" || entry.source === "worker")
+	);
+}
+
+/** Saves the newest entries. Storage failures only cost the crash history. */
+export function persistEntries(
+	storage: LogStorage | null,
+	entries: DebugEntry[],
+): void {
+	try {
+		storage?.setItem(
+			DEBUG_LOG_STORAGE_KEY,
+			JSON.stringify(entries.slice(-MAX_PERSISTED_ENTRIES)),
+		);
+	} catch {
+		// Quota or blocked storage: the live log still works.
+	}
+}
+
+/**
+ * Returns what the previous page load saved and removes it, so each load shows
+ * only the one before it.
+ */
+export function takePersistedEntries(storage: LogStorage | null): DebugEntry[] {
+	try {
+		const saved = storage?.getItem(DEBUG_LOG_STORAGE_KEY);
+		storage?.removeItem(DEBUG_LOG_STORAGE_KEY);
+		if (!saved) return [];
+
+		const parsed: unknown = JSON.parse(saved);
+
+		return Array.isArray(parsed) ? parsed.filter(isDebugEntry) : [];
+	} catch {
+		return [];
+	}
+}

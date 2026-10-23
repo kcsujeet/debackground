@@ -11,6 +11,7 @@ import {
 	recordModelAttempt,
 	recordModelFailure,
 	recordModelSuccess,
+	settleCrashedAttempt,
 } from "../lib/enhanced-model-memory";
 
 const ENHANCED = ENHANCED_BACKGROUND_REMOVAL_MODEL_ID;
@@ -120,4 +121,29 @@ test("missing storage is treated as no history", () => {
 	recordModelFailure(null, ENHANCED);
 
 	expect(hasEnhancedModelFailed(null)).toBe(false);
+});
+
+test("an attempt left over from a crash survives the next page's exit", () => {
+	const storage = memoryStorage();
+	recordModelAttempt(storage, ENHANCED);
+
+	// The tab dies here. The next load settles the marker, then the user leaves.
+	settleCrashedAttempt(storage);
+	clearInterruptedAttempt(storage);
+
+	expect(hasEnhancedModelFailed(storage)).toBe(true);
+	expect(storage.values.get(ENHANCED_MODEL_MARKER_KEY)).toBe("failed");
+});
+
+test("settling leaves a fresh device untouched", () => {
+	const storage = memoryStorage();
+
+	settleCrashedAttempt(storage);
+
+	expect(storage.values.has(ENHANCED_MODEL_MARKER_KEY)).toBe(false);
+});
+
+test("settling tolerates unusable storage", () => {
+	expect(() => settleCrashedAttempt(throwingStorage)).not.toThrow();
+	expect(() => settleCrashedAttempt(null)).not.toThrow();
 });

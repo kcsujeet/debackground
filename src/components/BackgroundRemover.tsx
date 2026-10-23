@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { DONATION_LINK } from "@/lib/constants";
 import { isDebugEnabled } from "@/lib/debug-log";
+import { isMobileDevice } from "@/lib/device-class";
 import {
 	clearInterruptedAttempt,
 	hasEnhancedModelFailed,
@@ -18,6 +19,7 @@ import {
 	recordModelAttempt,
 	recordModelFailure,
 	recordModelSuccess,
+	settleCrashedAttempt,
 } from "@/lib/enhanced-model-memory";
 import { toWorkingImage } from "@/lib/prepare-image";
 import { UNREADABLE_IMAGE_MESSAGE } from "@/lib/unreadable-image";
@@ -59,11 +61,13 @@ export default function BackgroundRemover() {
 			action: "process",
 			imageData,
 			enhancedModelFailed: hasEnhancedModelFailed(markerStorage()),
+			isMobile: isMobileDevice(navigator),
 		});
 	}, []);
 
 	useEffect(() => {
 		const storage = markerStorage();
+		settleCrashedAttempt(storage);
 		const onPageHide = () => clearInterruptedAttempt(storage);
 		window.addEventListener("pagehide", onPageHide);
 

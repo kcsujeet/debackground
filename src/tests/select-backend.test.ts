@@ -31,6 +31,7 @@ function profile(overrides: Partial<DeviceProfile> = {}): DeviceProfile {
 		maxStorageBuffersPerShaderStage: REQUIRED_STORAGE_BUFFERS_PER_STAGE,
 		deviceMemoryGb: ENHANCED_MODEL_MIN_DEVICE_MEMORY_GB,
 		enhancedModelFailed: false,
+		isMobile: false,
 		...overrides,
 	};
 }
@@ -115,6 +116,14 @@ test("tries the enhanced model where the browser hides device memory", () => {
 	expect(canTryEnhancedModel(profile({ deviceMemoryGb: undefined }))).toBe(
 		true,
 	);
+});
+
+test("never tries the enhanced model on a phone or tablet", () => {
+	expect(canTryEnhancedModel(profile({ isMobile: true }))).toBe(false);
+});
+
+test("a phone or tablet runs on the CPU only", () => {
+	expect(selectBackends(profile({ isMobile: true }))).toEqual([CPU]);
 });
 
 test("skips the enhanced model once it has failed on this device", () => {
