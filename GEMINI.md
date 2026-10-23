@@ -60,12 +60,15 @@ Every backend decision is logged under `[background-removal]`, including the ada
 reported limit and the resulting plan. Keep it that way — silent capability probes made
 this path very hard to diagnose from bug reports.
 
-BEN2 is tried first when `canTryEnhancedModel()` passes: WebGPU, `shader-f16` (its only
-build is fp16), `navigator.deviceMemory` of at least 8 where the browser reports it, and no
-earlier failure on this device. That last one lives in `localStorage` via
+BEN2 is tried first when `canTryEnhancedModel()` passes: not a phone or tablet
+(`isMobileDevice()` in `src/lib/device-class.ts`, run on the page because workers lack
+`maxTouchPoints`; BEN2 crashed an 8 GB Galaxy S22+ tab mid-inference), WebGPU,
+`shader-f16` (its only build is fp16), `navigator.deviceMemory` of at least 8 where the
+browser reports it, and no earlier failure on this device. That last one lives in `localStorage` via
 `src/lib/enhanced-model-memory.ts`, written by the page because workers have no
 `localStorage`. The worker posts `attempt` before each model and `attempt-failed` when one
-throws; a marker still reading "attempting" on the next load means the tab was killed.
+throws; a marker still reading "attempting" on the next load means the tab was killed,
+and `settleCrashedAttempt()` turns it into "failed" on load before `pagehide` can clear it.
 BEN2's storage-buffer need per shader is unmeasured (headless runs of the browser's ONNX
 Runtime build crashed), so there is no up-front check for it; an adapter that is too small
 fails at runtime and is remembered like any other failure.

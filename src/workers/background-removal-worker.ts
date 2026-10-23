@@ -298,6 +298,7 @@ async function toTransparentPng(
 
 async function selectedBackends(
 	enhancedModelFailed: boolean,
+	isMobile: boolean,
 ): Promise<InferenceBackend[]> {
 	if (backendQueue) return backendQueue;
 
@@ -305,6 +306,7 @@ async function selectedBackends(
 		...(await detectGpuCapabilities()),
 		deviceMemoryGb: (navigator as { deviceMemory?: number }).deviceMemory,
 		enhancedModelFailed,
+		isMobile,
 	};
 	backendQueue = selectBackends(profile);
 
@@ -312,7 +314,7 @@ async function selectedBackends(
 		.map((b) => `${b.model} ${b.device}/${b.dtype}`)
 		.join(" then ");
 	console.log(
-		`[background-removal] webgpu=${profile.hasWebGpu} shader-f16=${profile.hasShaderF16} maxStorageBuffers=${profile.maxStorageBuffersPerShaderStage} (need ${REQUIRED_STORAGE_BUFFERS_PER_STAGE}) deviceMemory=${profile.deviceMemoryGb ?? "unknown"}GB enhancedModelFailed=${enhancedModelFailed} -> ${plan}`,
+		`[background-removal] webgpu=${profile.hasWebGpu} shader-f16=${profile.hasShaderF16} maxStorageBuffers=${profile.maxStorageBuffersPerShaderStage} (need ${REQUIRED_STORAGE_BUFFERS_PER_STAGE}) deviceMemory=${profile.deviceMemoryGb ?? "unknown"}GB enhancedModelFailed=${enhancedModelFailed} mobile=${isMobile} -> ${plan}`,
 	);
 
 	// Threading is the difference between one core and several on the CPU backend,
@@ -349,6 +351,7 @@ async function reportedAttempt<T>(
 async function removeBackground(
 	imageData: Blob | string,
 	enhancedModelFailed: boolean,
+	isMobile: boolean,
 ): Promise<RemovalResult> {
 	// Decoded once, ahead of every model: a file that cannot be read fails the
 	// same way on each backend, so it must not be mistaken for a model failure.
@@ -359,7 +362,7 @@ async function removeBackground(
 		`[background-removal] decoded ${image.width}x${image.height} channels=${image.channels}`,
 	);
 
-	const queue = await selectedBackends(enhancedModelFailed);
+	const queue = await selectedBackends(enhancedModelFailed, isMobile);
 
 	try {
 		const { result, backend } = await runWithFallback(
@@ -422,9 +425,16 @@ self.onmessage = async (
 		action?: string;
 		imageData?: Blob | string;
 		enhancedModelFailed?: boolean;
+		isMobile?: boolean;
 	}>,
 ) => {
-	const { action, imageData, enhancedModelFailed = false } = event.data;
+	const {
+		action,
+		imageData,
+		enhancedModelFailed = false,
+		// Unknown counts as mobile: missing BEN2 is cheaper than a killed tab.
+		isMobile = true,
+	} = event.data;
 	if (action === "debug") {
 		startMirroringConsole();
 		return;
@@ -443,6 +453,7 @@ self.onmessage = async (
 		const { blob, backend, loadMs, inferMs } = await removeBackground(
 			imageData,
 			enhancedModelFailed,
+			isMobile,
 		);
 
 		console.log(

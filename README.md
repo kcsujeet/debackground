@@ -18,7 +18,7 @@
 - **Runtime**: [Bun](https://bun.sh/)
 - **Framework**: [Astro](https://astro.build/) + [React](https://reactjs.org/)
 - **AI Engine**: [Transformers.js](https://huggingface.co/docs/transformers.js/) (MIT)
-- **Models**: `onnx-community/BEN2-ONNX` where the device can run it, otherwise `studioludens/birefnet-lite-512`
+- **Models**: `onnx-community/BEN2-ONNX` on capable desktops, otherwise `studioludens/birefnet-lite-512`
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand)
 
@@ -34,7 +34,7 @@ your device:
 
 | Backend | Weights | Notes |
 | :--- | :--- | :--- |
-| BEN2, WebGPU + fp16 | 219 MB | Needs `shader-f16`, and 8 GB of RAM where the browser reports it |
+| BEN2, WebGPU + fp16 | 219 MB | Desktop only. Needs `shader-f16`, and 8 GB of RAM where the browser reports it |
 | BiRefNet_lite, WebGPU + fp16 | 98 MB | Requires a GPU adapter reporting `shader-f16` |
 | WebGPU + fp32 | 192 MB | WebGPU adapters without fp16 support |
 | WASM + fp32 | 192 MB | CPU fallback — noticeably slower |
@@ -43,7 +43,10 @@ Firefox ships WebGPU disabled by default; enable `dom.webgpu.enabled` in `about:
 for the fast path. Desktop Safari support is partial. If a backend fails to load or run,
 the worker moves down the table before reporting an error.
 
-BEN2 has no CPU path: it only ships as fp16, and a native CPU run peaked at 3.4 GB. If it
+BEN2 has no CPU path: it only ships as fp16, and a native CPU run peaked at 3.4 GB. It is
+never tried on phones or tablets either: it crashed an 8 GB Galaxy S22+ tab partway
+through inference, and Chrome reports at most 8 GB, so memory alone can't tell that phone
+from a desktop. If it
 fails on a device, or the tab dies while it runs (Safari kills a tab that runs out of
 memory instead of raising an error), that browser remembers it in `localStorage` and
 uses BiRefNet_lite from then on.

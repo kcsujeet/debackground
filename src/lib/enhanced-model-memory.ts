@@ -80,10 +80,21 @@ export function recordModelSuccess(
 }
 
 /**
+ * Turns an attempt the previous page load never finished into a failure. Must run
+ * when the page loads, before anything else touches the marker: left as
+ * "attempting", the next `pagehide` would clear it as if the user had walked
+ * away, and the model that crashed the tab would be tried again.
+ */
+export function settleCrashedAttempt(storage: MarkerStorage | null): void {
+	if (read(storage) === ATTEMPTING) write(storage, FAILED);
+}
+
+/**
  * Clears an attempt the user walked away from, for a `pagehide` listener. A tab
- * killed by the OS never gets the event, which is the split needed. Browsers also
- * skip it sometimes on a normal exit, mostly on mobile; that only leaves the
- * device on the fallback model, not broken.
+ * killed by the OS never gets the event, which is the split needed. Only sees
+ * this page's own attempts, because `settleCrashedAttempt` already resolved any
+ * earlier one. Browsers also skip it sometimes on a normal exit, mostly on
+ * mobile; that only leaves the device on the fallback model, not broken.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Window/pagehide_event
  */
 export function clearInterruptedAttempt(storage: MarkerStorage | null): void {
