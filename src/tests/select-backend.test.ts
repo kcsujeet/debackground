@@ -1,4 +1,5 @@
 import { expect, test } from "bun:test";
+import { backendKey } from "../lib/backend-memory";
 import {
 	BACKGROUND_REMOVAL_MODEL_ID,
 	ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
@@ -24,13 +25,19 @@ const ENHANCED: InferenceBackend = {
 	dtype: "fp16",
 };
 
+const ENHANCED_KEY = backendKey(ENHANCED);
+const LITE_GPU_KEY = backendKey({
+	model: BACKGROUND_REMOVAL_MODEL_ID,
+	device: "webgpu",
+});
+
 function profile(overrides: Partial<DeviceProfile> = {}): DeviceProfile {
 	return {
 		hasWebGpu: true,
 		hasShaderF16: true,
 		maxStorageBuffersPerShaderStage: REQUIRED_STORAGE_BUFFERS_PER_STAGE,
 		deviceMemoryGb: ENHANCED_MODEL_MIN_DEVICE_MEMORY_GB,
-		enhancedModelFailed: false,
+		failedBackends: [],
 		isMobile: false,
 		...overrides,
 	};
@@ -38,7 +45,9 @@ function profile(overrides: Partial<DeviceProfile> = {}): DeviceProfile {
 
 /** The BiRefNet_lite part of the queue, which these tests predate. */
 function fallbacks(overrides: Partial<DeviceProfile> = {}) {
-	return selectBackends(profile({ enhancedModelFailed: true, ...overrides }));
+	return selectBackends(
+		profile({ failedBackends: [ENHANCED_KEY], ...overrides }),
+	);
 }
 
 test("prefers WebGPU fp16 when the adapter supports shader-f16", () => {
@@ -127,9 +136,34 @@ test("a phone or tablet runs on the CPU only", () => {
 });
 
 test("skips the enhanced model once it has failed on this device", () => {
-	expect(canTryEnhancedModel(profile({ enhancedModelFailed: true }))).toBe(
-		false,
+	const backends = selectBackends(profile({ failedBackends: [ENHANCED_KEY] }));
+
+	expect(backends).not.toContainEqual(ENHANCED);
+	expect(backends[0].model).toBe(BACKGROUND_REMOVAL_MODEL_ID);
+});
+
+test("a desktop whose GPU crashed on BiRefNet_lite drops to the CPU", () => {
+	const backends = selectBackends(
+		profile({ failedBackends: [ENHANCED_KEY, LITE_GPU_KEY] }),
 	);
+
+	expect(backends).toEqual([CPU]);
+});
+
+test("a BiRefNet_lite GPU failure leaves BEN2 alone", () => {
+	const backends = selectBackends(profile({ failedBackends: [LITE_GPU_KEY] }));
+
+	expect(backends).toEqual([ENHANCED, CPU]);
+});
+
+test("the CPU is never dropped, even after it failed", () => {
+	const backends = selectBackends(
+		profile({
+			failedBackends: [ENHANCED_KEY, LITE_GPU_KEY, backendKey(CPU)],
+		}),
+	);
+
+	expect(backends).toEqual([CPU]);
 });
 
 test("always ends on the CPU fallback", () => {
@@ -138,7 +172,7 @@ test("always ends on the CPU fallback", () => {
 		profile({ hasShaderF16: false }),
 		profile({ hasWebGpu: false }),
 		profile({ maxStorageBuffersPerShaderStage: 10 }),
-		profile({ enhancedModelFailed: true }),
+		profile({ failedBackends: [ENHANCED_KEY, LITE_GPU_KEY] }),
 	];
 
 	for (const variant of variants) {

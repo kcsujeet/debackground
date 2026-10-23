@@ -1,5 +1,12 @@
 import { Bug } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import {
+	backendKey,
+	describeBackendMemory,
+	forgetAllBackends,
+	recordFailure,
+	safeLocalStorage,
+} from "@/lib/backend-memory";
 import { ENHANCED_BACKGROUND_REMOVAL_MODEL_ID } from "@/lib/constants";
 import {
 	type DebugEntry,
@@ -8,11 +15,6 @@ import {
 	persistEntries,
 	takePersistedEntries,
 } from "@/lib/debug-log";
-import {
-	ENHANCED_MODEL_MARKER_KEY,
-	markerStorage,
-	recordModelFailure,
-} from "@/lib/enhanced-model-memory";
 import { Button } from "../ui/Button";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { useDebugLog } from "./useDebugLog";
@@ -33,7 +35,7 @@ let previousSession: DebugEntry[] | null = null;
  * and a second read would find this load's own entries instead.
  */
 function previousSessionEntries(): DebugEntry[] {
-	previousSession ??= takePersistedEntries(markerStorage());
+	previousSession ??= takePersistedEntries(safeLocalStorage());
 	return previousSession;
 }
 
@@ -55,7 +57,7 @@ function logEnvironment(): void {
 	const nav = navigator as Navigator & { deviceMemory?: number };
 
 	console.info(
-		`[debug] ${nav.userAgent} | deviceMemory=${nav.deviceMemory ?? "unknown"}GB cores=${nav.hardwareConcurrency} secureContext=${window.isSecureContext} crossOriginIsolated=${window.crossOriginIsolated} webgpu=${"gpu" in nav} ${ENHANCED_MODEL_MARKER_KEY}=${markerStorage()?.getItem(ENHANCED_MODEL_MARKER_KEY) ?? "unset"}`,
+		`[debug] ${nav.userAgent} | deviceMemory=${nav.deviceMemory ?? "unknown"}GB cores=${nav.hardwareConcurrency} secureContext=${window.isSecureContext} crossOriginIsolated=${window.crossOriginIsolated} webgpu=${"gpu" in nav} failedBackends=${describeBackendMemory(safeLocalStorage())}`,
 	);
 }
 
@@ -72,7 +74,7 @@ export default function DebugPanel() {
 	const endRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
-		const storage = markerStorage();
+		const storage = safeLocalStorage();
 		const restore = mirrorConsole(console, (level, text) => {
 			useDebugLog
 				.getState()
@@ -112,18 +114,20 @@ export default function DebugPanel() {
 		}
 	};
 
-	const resetMarker = () => {
-		try {
-			markerStorage()?.removeItem(ENHANCED_MODEL_MARKER_KEY);
-			setNotice("BEN2 marker cleared. Reload to try BEN2 again.");
-		} catch {
-			setNotice("Could not reach localStorage.");
-		}
+	const resetBackendMemory = () => {
+		forgetAllBackends(safeLocalStorage());
+		setNotice("Backend memory cleared. Reload to try every backend again.");
 	};
 
 	const skipEnhancedModel = () => {
-		recordModelFailure(markerStorage(), ENHANCED_BACKGROUND_REMOVAL_MODEL_ID);
-		setNotice("BEN2 marked as failed. Reload to use BiRefNet_lite only.");
+		recordFailure(
+			safeLocalStorage(),
+			backendKey({
+				model: ENHANCED_BACKGROUND_REMOVAL_MODEL_ID,
+				device: "webgpu",
+			}),
+		);
+		setNotice("BEN2 marked as failed. Reload to skip it.");
 	};
 
 	return (
@@ -168,8 +172,8 @@ export default function DebugPanel() {
 						<Button size="sm" variant="outline" onClick={clear}>
 							Clear
 						</Button>
-						<Button size="sm" variant="outline" onClick={resetMarker}>
-							Reset BEN2 marker
+						<Button size="sm" variant="outline" onClick={resetBackendMemory}>
+							Reset backend memory
 						</Button>
 						<Button size="sm" variant="outline" onClick={skipEnhancedModel}>
 							Skip BEN2

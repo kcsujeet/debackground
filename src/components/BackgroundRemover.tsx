@@ -9,18 +9,19 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import {
+	backendKey,
+	clearInterruptedAttempts,
+	failedBackendKeys,
+	recordAttempt,
+	recordFailure,
+	recordSuccess,
+	safeLocalStorage,
+	settleCrashedAttempts,
+} from "@/lib/backend-memory";
 import { DONATION_LINK } from "@/lib/constants";
 import { isDebugEnabled } from "@/lib/debug-log";
 import { isMobileDevice } from "@/lib/device-class";
-import {
-	clearInterruptedAttempt,
-	hasEnhancedModelFailed,
-	markerStorage,
-	recordModelAttempt,
-	recordModelFailure,
-	recordModelSuccess,
-	settleCrashedAttempt,
-} from "@/lib/enhanced-model-memory";
 import { toWorkingImage } from "@/lib/prepare-image";
 import { UNREADABLE_IMAGE_MESSAGE } from "@/lib/unreadable-image";
 import { formatMegabytes } from "@/lib/utils";
@@ -60,15 +61,15 @@ export default function BackgroundRemover() {
 		workerRef.current?.postMessage({
 			action: "process",
 			imageData,
-			enhancedModelFailed: hasEnhancedModelFailed(markerStorage()),
+			failedBackends: failedBackendKeys(safeLocalStorage()),
 			isMobile: isMobileDevice(navigator),
 		});
 	}, []);
 
 	useEffect(() => {
-		const storage = markerStorage();
-		settleCrashedAttempt(storage);
-		const onPageHide = () => clearInterruptedAttempt(storage);
+		const storage = safeLocalStorage();
+		settleCrashedAttempts(storage);
+		const onPageHide = () => clearInterruptedAttempts(storage);
 		window.addEventListener("pagehide", onPageHide);
 
 		workerRef.current = new Worker(
@@ -93,9 +94,9 @@ export default function BackgroundRemover() {
 					text: event.data.text,
 				});
 			} else if (workerStatus === "attempt") {
-				recordModelAttempt(storage, event.data.model);
+				recordAttempt(storage, event.data.backend);
 			} else if (workerStatus === "attempt-failed") {
-				recordModelFailure(storage, event.data.model);
+				recordFailure(storage, event.data.backend);
 			} else if (workerStatus === "downloading") {
 				const { percent, loaded, total } = event.data;
 				setStatus("Downloading AI model...");
@@ -104,7 +105,7 @@ export default function BackgroundRemover() {
 				setStatus(message);
 				setModelDownload(null);
 			} else if (workerStatus === "complete") {
-				recordModelSuccess(storage, event.data.meta.model);
+				recordSuccess(storage, backendKey(event.data.meta));
 				setProcessedImage(processedImageUrl);
 				setIsProcessing(false);
 				setStatus(null);
