@@ -2,12 +2,17 @@ import { beforeEach, expect, test } from "bun:test";
 import { useDebugLog } from "../components/debug/useDebugLog";
 import {
 	type ConsoleLike,
+	DEBUG_LOG_STORAGE_KEY,
 	type DebugLevel,
 	formatConsoleArgs,
 	formatEntries,
 	isDebugEnabled,
+	type LogStorage,
 	MAX_DEBUG_ENTRIES,
+	MAX_PERSISTED_ENTRIES,
 	mirrorConsole,
+	persistEntries,
+	takePersistedEntries,
 } from "../lib/debug-log";
 
 function fakeConsole(): ConsoleLike & { printed: string[] } {
@@ -132,4 +137,92 @@ test("the store keeps only the newest entries", () => {
 	const { entries } = useDebugLog.getState();
 	expect(entries).toHaveLength(MAX_DEBUG_ENTRIES);
 	expect(entries[0].text).toBe("5");
+});
+
+function memoryStorage(): LogStorage & { values: Map<string, string> } {
+	const values = new Map<string, string>();
+
+	return {
+		values,
+		getItem: (key) => values.get(key) ?? null,
+		setItem: (key, value) => {
+			values.set(key, value);
+		},
+		removeItem: (key) => {
+			values.delete(key);
+		},
+	};
+}
+
+const ENTRY = {
+	time: 1,
+	source: "worker",
+	level: "log",
+	text: "[background-removal] running inference",
+} as const;
+
+test("entries saved before a crash come back on the next load", () => {
+	const storage = memoryStorage();
+
+	persistEntries(storage, [ENTRY]);
+
+	expect(takePersistedEntries(storage)).toEqual([ENTRY]);
+});
+
+test("the saved log is shown once, then gone", () => {
+	const storage = memoryStorage();
+
+	persistEntries(storage, [ENTRY]);
+	takePersistedEntries(storage);
+
+	expect(takePersistedEntries(storage)).toEqual([]);
+});
+
+test("only the newest entries are saved", () => {
+	const storage = memoryStorage();
+	const entries = Array.from({ length: MAX_PERSISTED_ENTRIES + 3 }, (_, i) => ({
+		...ENTRY,
+		time: i,
+	}));
+
+	persistEntries(storage, entries);
+
+	const restored = takePersistedEntries(storage);
+	expect(restored).toHaveLength(MAX_PERSISTED_ENTRIES);
+	expect(restored[0].time).toBe(3);
+});
+
+test("corrupt saved data is ignored", () => {
+	const storage = memoryStorage();
+	storage.setItem(DEBUG_LOG_STORAGE_KEY, "{not json");
+
+	expect(takePersistedEntries(storage)).toEqual([]);
+});
+
+test("malformed entries are dropped", () => {
+	const storage = memoryStorage();
+	storage.setItem(
+		DEBUG_LOG_STORAGE_KEY,
+		JSON.stringify([ENTRY, { time: "x" }, null, { ...ENTRY, level: "loud" }]),
+	);
+
+	expect(takePersistedEntries(storage)).toEqual([ENTRY]);
+});
+
+test("unavailable storage neither throws nor restores anything", () => {
+	const throwing: LogStorage = {
+		getItem: () => {
+			throw new Error("SecurityError");
+		},
+		setItem: () => {
+			throw new Error("QuotaExceededError");
+		},
+		removeItem: () => {
+			throw new Error("SecurityError");
+		},
+	};
+
+	expect(() => persistEntries(throwing, [ENTRY])).not.toThrow();
+	expect(takePersistedEntries(throwing)).toEqual([]);
+	expect(takePersistedEntries(null)).toEqual([]);
 });

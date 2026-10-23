@@ -237,6 +237,9 @@ async function loadRemover(
 	}
 
 	isFetchingWeights = await needsWeightsDownload(backend);
+	console.log(
+		`[background-removal] loading ${backend.model} ${backend.device}/${backend.dtype} download=${isFetchingWeights}`,
+	);
 
 	// Deliberately not a distinct "loading the model" phase. Once the weights are
 	// cached this step is invisible work on the way to a result, and announcing it
@@ -284,7 +287,11 @@ async function toTransparentPng(
 	// The pipeline scales the predicted mask back up to the dimensions of whatever it
 	// was given and applies it as the alpha channel. The caller has already capped
 	// those dimensions, so the output matches the working image, not the source file.
+	console.log(
+		`[background-removal] running inference on ${image.width}x${image.height}`,
+	);
 	const result = firstResult(await segmenter(image));
+	console.log("[background-removal] inference done, encoding PNG");
 
 	return await result.toBlob("image/png");
 }
