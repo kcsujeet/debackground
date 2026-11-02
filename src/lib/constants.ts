@@ -1,5 +1,6 @@
 export const DONATION_LINK = "https://ko-fi.com/kcsujeet";
 export const CONTACT_EMAIL = "ilamy.dev@gmail.com";
+export const REPOSITORY_URL = "https://github.com/kcsujeet/debackground";
 
 /**
  * General-purpose dichotomous segmentation model, MIT licensed. Unlike a portrait

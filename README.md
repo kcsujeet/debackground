@@ -2,6 +2,8 @@
 
 **deBackground** is a professional-grade, 100% private, and free AI background remover that runs entirely in your browser. No signups, no fees, and no data ever leaves your device.
 
+**Try it:** [debackground.pages.dev](https://debackground.pages.dev/)
+
 ![deBackground Hero](public/favicon.svg)
 
 ## ✨ Features
@@ -95,15 +97,34 @@ Ensure you have [Bun](https://bun.sh/) installed.
    bun dev
    ```
 
-4. Open [http://localhost:4321](http://localhost:4321) in your browser.
+4. Open [http://localhost:4324](http://localhost:4324) in your browser.
 
 ## 📖 Commands
 
 | Command | Action |
 | :--- | :--- |
-| `bun dev` | Starts local dev server at `localhost:4321` |
+| `bun dev` | Starts local dev server at `localhost:4324` |
 | `bun run build` | Build your production site to `./dist/` |
 | `bun run preview` | Preview your build locally |
 | `bun run check` | Run Biome checks and formatting |
+| `bun test` | Run the test suite |
 
+## 🌐 Deployment
 
+The site is deployed on Cloudflare Pages at
+[debackground.pages.dev](https://debackground.pages.dev/), with a preview deployment for
+every pull request. `public/_headers` sets the cross-origin isolation headers that
+multi-threaded WASM needs.
+
+## 🤝 Contributing
+
+Issues and pull requests are welcome. Before opening a PR, run `bun run check` and
+`bun test`. For a bug that only shows up on one device, open the page with `?debug=1`:
+a Debug button shows the page and worker logs, keeps them across a crash, and can copy
+them into the issue.
+
+## 📄 License
+
+[MIT](LICENSE) © 2026 Sujeet Kc. The models it downloads are MIT licensed too:
+[BEN2 Base](https://huggingface.co/PramaLLC/BEN2) and
+[BiRefNet](https://github.com/ZhengPeng7/BiRefNet).

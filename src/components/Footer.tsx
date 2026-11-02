@@ -1,4 +1,4 @@
-import { CONTACT_EMAIL } from "@/lib/constants";
+import { CONTACT_EMAIL, REPOSITORY_URL } from "@/lib/constants";
 
 export default function Footer() {
 	const currentYear = new Date().getFullYear();
@@ -65,7 +65,18 @@ export default function Footer() {
 
 				<div className="flex flex-col md:flex-row items-center justify-center gap-6 pt-8 border-t border-border">
 					<div className="flex items-center gap-2 text-xs text-muted-foreground">
-						<span>© {currentYear} deBackground. All rights reserved.</span>
+						<span>
+							© {currentYear} deBackground. Open source under the{" "}
+							<a
+								href={`${REPOSITORY_URL}/blob/main/LICENSE`}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="hover:text-foreground transition-colors underline"
+							>
+								MIT License
+							</a>
+							.
+						</span>
 					</div>
 				</div>
 			</div>
